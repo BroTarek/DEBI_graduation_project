@@ -7,11 +7,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using YouTubeClone.Domain.Aggregates.Users;
+using YouTubeClone.Domain.Aggregates.Channels;
+using YouTubeClone.Domain.Aggregates.Videos;
+using YouTubeClone.Domain.Aggregates.Playlists;
+using YouTubeClone.Domain.Aggregates.Subscriptions;
+using YouTubeClone.Domain.Aggregates.Interactions;
+using YouTubeClone.Domain.Aggregates.WatchHistories;
 
 namespace YDbContext.Persistance.Contexts
 {
     public class YDbContextDbContext(DbContextOptions<YDbContextDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
+        public DbSet<User> DomainUsers { get; set; }
+        public DbSet<Channel> Channels { get; set; }
+        public DbSet<Video> Videos { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<Playlist> Playlists { get; set; }
+        public DbSet<PlaylistVideoItem> PlaylistVideoItems { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<UserInteraction> UserInteractions { get; set; }
+        public DbSet<WatchHistory> WatchHistories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
