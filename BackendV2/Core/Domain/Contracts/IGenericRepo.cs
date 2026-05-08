@@ -16,9 +16,10 @@ namespace Core.Domain.Contracts.Repos
         public Task<TEntity> GetByIdWithSpecificationsAsync(ISpecifications<TEntity, TKey> specifications);
 
         public Task<int> CountAsync(ISpecifications<TEntity, TKey> specifications);
-        public void AddAsync(TEntity entity);
-        public void Update(TEntity entity);
-        public void Delete(TEntity entity);
-        public void DeleteRangeAsync(IEnumerable<TEntity> entities);
+        public Task AddAsync(TEntity entity);
+        public Task UpdateAsync(TEntity entity);
+        public Task DeleteAsync(TEntity entity);
+        public Task DeleteRangeAsync(IEnumerable<TEntity> entities);
+
     }
 }

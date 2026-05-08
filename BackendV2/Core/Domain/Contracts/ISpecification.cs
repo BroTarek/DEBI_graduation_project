@@ -1,1 +1,27 @@
-// no interface yet
+using Makanak.Domain.Models;
+using Makanak.Services.Specifications;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text;
+
+namespace Makanak.Domain.Contracts.Specifications
+{
+    public interface ISpecifications<TEntity, TKey> where TEntity : class, IEntity<TKey>
+    {
+        Expression<Func<TEntity, bool>> Criteria { get; } // RETURN T OR F 
+        List<Expression<Func<TEntity, object>>> Includes { get; }
+        // Include strings for navigation properties
+        List<string> IncludeStrings { get; }
+
+        // OrderBy
+        List<OrderExpressionInfo<TEntity>> OrderExpressions { get; }
+        public Expression<Func<TEntity, object>> OrderByDesc { get; }
+        public Expression<Func<TEntity, object>> OrderBy { get; }
+
+        // Pagenation 
+        public int Take { get; }
+        public int Skip { get; }
+        public bool IsPagingEnabled { get; }
+        }
+}

@@ -24,5 +24,6 @@ namespace YouTubeClone.Domain.Aggregates.Channels
             Name = name;
             Description = description;
         }
+
     }
 }
