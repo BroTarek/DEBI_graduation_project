@@ -8,7 +8,7 @@ using Amazon.S3.Model;
 
 namespace Makanak.Persistance.Services.Storage2
 {
-    public class AwsS3VideoUploadStrategy : IVideoUploadStrategy
+    public class AwsS3VideoUploadStrategy : IUploadStrategy
     {
         private readonly string _bucketName;
         private readonly IAmazonS3 _s3Client;
@@ -19,12 +19,13 @@ namespace Makanak.Persistance.Services.Storage2
             _s3Client = s3Client;
         }
 
-        public async Task<string> UploadVideoAsync(IFormFile file)
+        public async Task<string> UploadAsync(IFormFile file, string folderName)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is empty or null.");
 
-            var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+            var prefix = string.IsNullOrEmpty(folderName) ? "" : folderName.TrimEnd('/') + "/";
+            var uniqueFileName = prefix + Guid.NewGuid().ToString() + "_" + file.FileName;
 
             using var stream = file.OpenReadStream();
             var putRequest = new PutObjectRequest
@@ -39,7 +40,7 @@ namespace Makanak.Persistance.Services.Storage2
             return $"https://{_bucketName}.s3.amazonaws.com/{uniqueFileName}";
         }
 
-        public async Task DeleteVideoAsync(string fileUrl)
+        public async Task DeleteAsync(string fileUrl)
         {
             if (string.IsNullOrEmpty(fileUrl)) return;
 

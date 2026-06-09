@@ -12,12 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.InjectDatabaseService(builder.Configuration);
 
 // Add Identity Services & security services 
-builder.Services.InjectIdentityCore();
-builder.Services.InjectRateLimiting();
+// builder.Services.InjectIdentityCore();
+// builder.Services.InjectRateLimiting();
 
 // Custom Extensions (Security & CORS)
-builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
-builder.Services.AddCustomCors(builder.Configuration);
+// builder.Services.AddJwtAuthentication(builder.Configuration, builder.Environment);
+// builder.Services.AddCustomCors(builder.Configuration);
 
 // Add Services to the Container 
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -25,7 +25,7 @@ builder.Services.InjectAutoMapperService();
 
 builder.Services.AddSwaggerDocumentation();
 
-builder.Services.AddSignalR();
+// builder.Services.AddSignalR();
 
 
 
@@ -61,10 +61,10 @@ app.UseRouting();
 // CORS MUST be between UseRouting and UseAuth
 app.UseCors("CorsPolicy");
 
-app.UseRateLimiter();
+// app.UseRateLimiter();
 
-app.UseAuthentication();
-app.UseAuthorization();
+// app.UseAuthentication();
+// app.UseAuthorization();
 
 app.UseStaticFiles();
 app.MapControllers();

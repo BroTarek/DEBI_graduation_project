@@ -12,7 +12,7 @@ namespace Makanak.Persistance.Services.Storage2
             _serviceProvider = serviceProvider;
         }
 
-        public IVideoUploadStrategy CreateStrategy(string preferredUploadServiceProvider)
+        public IUploadStrategy CreateStrategy(string preferredUploadServiceProvider)
         {
             if (string.IsNullOrEmpty(preferredUploadServiceProvider))
                 throw new ArgumentException("Preferred upload service provider cannot be null or empty.", nameof(preferredUploadServiceProvider));
@@ -21,6 +21,7 @@ namespace Makanak.Persistance.Services.Storage2
             {
                 "S3" => _serviceProvider.GetRequiredService<AwsS3VideoUploadStrategy>(),
                 "CLOUDINARY" => _serviceProvider.GetRequiredService<CloudinaryVideoUploadStrategy>(),
+                "LOCAL" => _serviceProvider.GetRequiredService<LocalUploadStrategy>(),
                 _ => throw new NotSupportedException($"Upload provider '{preferredUploadServiceProvider}' is not supported.")
             };
         }

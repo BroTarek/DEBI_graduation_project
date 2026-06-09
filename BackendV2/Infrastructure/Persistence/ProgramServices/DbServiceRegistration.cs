@@ -48,10 +48,12 @@ namespace Makanak.Persistance.ProgramServices
             });
 
             // Register Strategy-based Storage2 Services
+            services.AddHttpContextAccessor();
             services.AddScoped<AwsS3VideoUploadStrategy>();
             services.AddScoped<CloudinaryVideoUploadStrategy>();
+            services.AddScoped<LocalUploadStrategy>();
             services.AddScoped<IUploadStrategyFactory, UploadStrategyFactory>();
-            services.AddScoped<VideoUploadContext>();
+            services.AddScoped<UploadContext>();
 
             // Add DB Initializer
             services.AddScoped<IDbInitializer, DbInitialized>();

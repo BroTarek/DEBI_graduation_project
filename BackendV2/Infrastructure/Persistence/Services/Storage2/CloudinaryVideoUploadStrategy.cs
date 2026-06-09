@@ -1,7 +1,19 @@
-public class CloudinaryVideoUploadStrategy : IVideoUploadStrategy {
-    private readonly Cloudinary _cloudinary;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
 
-        public CloudinaryStorageService(IConfiguration configuration)
+namespace Makanak.Persistance.Services.Storage2
+{
+    public class CloudinaryVideoUploadStrategy : IUploadStrategy
+    {
+        private readonly Cloudinary _cloudinary;
+
+        public CloudinaryVideoUploadStrategy(IConfiguration configuration)
         {
             var account = new Account(
                 configuration["Cloudinary:CloudName"],
@@ -10,7 +22,8 @@ public class CloudinaryVideoUploadStrategy : IVideoUploadStrategy {
             );
             _cloudinary = new Cloudinary(account);
         }
-   public async Task<string> UploadVideoAsync(IFormFile file)
+
+        public async Task<string> UploadAsync(IFormFile file, string folderName)
         {
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is empty or null.");
@@ -22,18 +35,19 @@ public class CloudinaryVideoUploadStrategy : IVideoUploadStrategy {
             {
                 File = new FileDescription(file.FileName, stream),
                 PublicId = uniqueFileName,
-                Overwrite = true
+                Overwrite = true,
+                Folder = folderName
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
             if (uploadResult.Error != null)
-                throw new Exception($"Cloudinary video upload failed: {uploadResult.Error.Message}");
+                throw new Exception($"Cloudinary upload failed: {uploadResult.Error.Message}");
 
             return uploadResult.SecureUrl.ToString();
         }
 
-        public async Task DeleteVideoAsync(string fileUrl)
+        public async Task DeleteAsync(string fileUrl)
         {
             if (string.IsNullOrEmpty(fileUrl)) return;
 
@@ -46,7 +60,7 @@ public class CloudinaryVideoUploadStrategy : IVideoUploadStrategy {
             var deletionResult = await _cloudinary.DestroyAsync(deletionParams);
 
             if (deletionResult.Error != null)
-                throw new Exception($"Cloudinary video deletion failed: {deletionResult.Error.Message}");
+                throw new Exception($"Cloudinary deletion failed: {deletionResult.Error.Message}");
         }
 
         private string ExtractPublicIdFromUrl(string fileUrl)
@@ -64,4 +78,5 @@ public class CloudinaryVideoUploadStrategy : IVideoUploadStrategy {
                 return fileUrl;
             }
         }
+    }
 }
