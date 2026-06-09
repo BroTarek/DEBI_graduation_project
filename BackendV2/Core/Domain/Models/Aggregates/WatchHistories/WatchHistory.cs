@@ -23,5 +23,15 @@ namespace YouTubeClone.Domain.Aggregates.WatchHistories
         {
             _videos.Add(video);
         }
+
+        public void RemoveVideo(Video video)
+        {
+            _videos.Remove(video);
+        }
+
+        public void ClearVideos()
+        {
+            _videos.Clear();
+        }
     }
 }

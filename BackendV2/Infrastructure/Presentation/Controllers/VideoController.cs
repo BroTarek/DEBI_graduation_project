@@ -6,16 +6,20 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using YouTubeClone.Domain.Services;
 
+using YouTubeClone.Shared.DTOs.WatchHistories;
+
 namespace YouTubeClone.Presentation.Controllers
 {
     public class VideoController : BaseController
     {
         private readonly IVideoService _videoService;
+        private readonly IWatchHistoryService _watchHistoryService;
 
         // Controller only depends on the service contract interface
-        public VideoController(IVideoService videoService)
+        public VideoController(IVideoService videoService, IWatchHistoryService watchHistoryService)
         {
             _videoService = videoService;
+            _watchHistoryService = watchHistoryService;
         }
 
         [HttpGet("/HomePageVideos")]
@@ -26,10 +30,15 @@ namespace YouTubeClone.Presentation.Controllers
         }
 
         [HttpGet("/watch")]
-        public async Task<IActionResult> GetVideo([FromQuery] Guid videoId)
+        public async Task<IActionResult> GetVideo([FromQuery] Guid videoId, [FromBody] WatchHistoryRequestDto request = null)
         {
             var videoWatchData = await _videoService.GetWatchPageVideoAsync(videoId);
-            //var videoWatchData = await _watchHistoryService.addToWatchHistory(videoId);
+            
+            if (request != null && request.UserId != Guid.Empty)
+            {
+                await _watchHistoryService.AddToWatchHistoryAsync(videoId, request.UserId);
+            }
+
             if (videoWatchData == null) return NotFound();
 
             return Ok(new ApiResponse<VideoWatchDto>(videoWatchData));

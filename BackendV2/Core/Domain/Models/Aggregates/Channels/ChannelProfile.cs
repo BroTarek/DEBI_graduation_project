@@ -9,7 +9,7 @@ namespace YouTubeClone.Domain.Aggregates.Channels
         public string Avatar { get; private set; }
         public string GreaterImg { get; private set; }
 
-        public ChannelProfile(int subscribersCount, string channelsDescription, string links, string name, string avatar, string greaterImg)
+        public ChannelProfile(int subscribersCount=0, string channelsDescription, string links, string name, string avatar, string greaterImg)
         {
             SubscribersCount = subscribersCount;
             ChannelsDescription = channelsDescription;
