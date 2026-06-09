@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using YouTubeClone.Domain.Base;
 using YouTubeClone.Domain.ValueObjects;
 
@@ -7,25 +6,19 @@ namespace YouTubeClone.Domain.Aggregates.Videos
 {
     public class Comment : Entity<CommentId>
     {
-        public UserId AuthorId { get; private set; }
+        public string CommentId { get; private set; }
+        public string AuthorId { get; private set; }
+        public string VideoId { get; private set; }
         public string Content { get; private set; }
-        public DateTime CreatedAt { get; private set; }
-        public CommentId? ParentCommentId { get; private set; }
+        public Comment? ParentComment { get; private set; }
 
-        private readonly List<Comment> _replies = new();
-        public IReadOnlyList<Comment> Replies => _replies.AsReadOnly();
-
-        public Comment(CommentId id, UserId authorId, string content, CommentId? parentCommentId = null) : base(id)
+        public Comment(CommentId id, string commentId, string authorId, string videoId, string content, Comment? parentComment = null) : base(id)
         {
+            CommentId = commentId;
             AuthorId = authorId;
+            VideoId = videoId;
             Content = content;
-            ParentCommentId = parentCommentId;
-            CreatedAt = DateTime.UtcNow;
-        }
-
-        public void AddReply(Comment reply)
-        {
-            _replies.Add(reply);
+            ParentComment = parentComment;
         }
     }
 }

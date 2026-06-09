@@ -67,18 +67,9 @@ namespace YouTubeClone.Presentation.Controllers
             }, "Channel retrieved successfully."));
         }
 
-        [HttpPost("{id}/subscribe")]
-        public async Task<IActionResult> ToggleSubscribe(Guid id)
+        public async Task<IActionResult> GetChannelPlaylists(Guid id)
         {
-            var userIdStr = GetUserId();
-            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userIdGuid))
-            {
-                return Unauthorized(new ApiResponse<string>("Unauthorized user.", 401));
-            }
-
-            var subscriberId = new UserId(userIdGuid);
             var channelId = new ChannelId(id);
-
             var channelRepo = _unitOfWork.GetRepo<Channel, ChannelId>();
             var channel = await channelRepo.GetByIdAsync(channelId);
             if (channel == null)
@@ -86,29 +77,20 @@ namespace YouTubeClone.Presentation.Controllers
                 return NotFound(new ApiResponse<string>("Channel not found.", 404));
             }
 
-            if (channel.OwnerId.Value == subscriberId.Value)
+            return Ok(new ApiResponse<ChannelDetailsDto>(new ChannelDetailsDto
             {
-                return BadRequest(new ApiResponse<string>("You cannot subscribe to your own channel.", 400));
-            }
-
-            var subRepo = _unitOfWork.GetRepo<Subscription, SubscriptionId>();
-            var allSubs = await subRepo.GetAllAsync();
-            var existingSub = allSubs.FirstOrDefault(s => s.SubscriberId.Value == subscriberId.Value && s.ChannelId.Value == channelId.Value);
-
-            if (existingSub != null)
-            {
-                await subRepo.DeleteAsync(existingSub);
-                await _unitOfWork.SaveChangesAsync();
-                return Ok(new ApiResponse<string>("Unsubscribed successfully."));
-            }
-            else
-            {
-                var sub = new Subscription(new SubscriptionId(Guid.NewGuid()), subscriberId, channelId);
-                await subRepo.AddAsync(sub);
-                await _unitOfWork.SaveChangesAsync();
-                return Ok(new ApiResponse<string>("Subscribed successfully."));
-            }
+                Id = channel.Id.Value,
+                OwnerId = channel.OwnerId.Value,
+                Name = channel.Name.Value,
+                Description = channel.Description.Value,
+                CreatedAt = channel.CreatedAt
+            }, "Channel retrieved successfully."));
         }
+
+        
+
+        
+        
     }
 
     public class CreateChannelDto

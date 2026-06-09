@@ -36,69 +36,18 @@ namespace YouTubeClone.Presentation.Controllers
 
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> UploadVideo([FromForm] UploadVideoDto dto)
-        {
-            var userIdStr = GetUserId();
-            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userIdGuid))
-            {
-                return Unauthorized(new ApiResponse<string>("Unauthorized user.", 401));
-            }
+        public async Task<IActionResult> UploadVideo([FromForm] UploadVideoDto dto){
+            /*
+            get all the data for the video (the prefered cloudStorage) and create a new video
+            upload the Video to the cloud stroage provider 
+            if successful upload the thumnail to the Local Storage of the app wwwroot
+            then upload the other video entity to the database 
 
-            var userId = new UserId(userIdGuid);
+            use the unit of work to save to the database to ensure atomic transaction (if upload to the cloud provider failed do not save anything in the database)
 
-            // Find the user's channel
-            var channelRepo = _unitOfWork.GetRepo<Channel, ChannelId>();
-            var allChannels = await channelRepo.GetAllAsync();
-            var channel = allChannels.FirstOrDefault(c => c.OwnerId.Value == userId.Value);
-            if (channel == null)
-            {
-                return BadRequest(new ApiResponse<string>("You must create a channel before uploading videos.", 400));
-            }
 
-            // Upload files
-            string thumbnailUrlStr = "";
-            string videoUrlStr = "";
 
-            if (dto.ThumbnailFile != null)
-            {
-                thumbnailUrlStr = await _mediaStorage.UploadImageAsync(dto.ThumbnailFile);
-            }
-
-            if (dto.VideoFile != null)
-            {
-                videoUrlStr = await _mediaStorage.UploadVideoAsync(dto.VideoFile, VideoStorageProvider.Cloudinary);
-            }
-
-            // Create video entity
-            var videoId = new VideoId(Guid.NewGuid());
-            var title = new Title(dto.Title);
-            var description = new Description(dto.Description);
-            var duration = new Duration(dto.DurationSeconds);
-            var thumbnailUrl = new ThumbnailUrl(thumbnailUrlStr);
-            var category = new Category(dto.Category);
-            
-            var tagsList = (dto.Tags ?? "")
-                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(t => new Tag(t.Trim()))
-                .ToList();
-
-            var video = new Video(
-                videoId,
-                channel.Id,
-                title,
-                description,
-                duration,
-                thumbnailUrl,
-                PrivacyStatus.Public,
-                category,
-                tagsList
-            );
-
-            var videoRepo = _unitOfWork.GetRepo<Video, VideoId>();
-            await videoRepo.AddAsync(video);
-            await _unitOfWork.SaveChangesAsync();
-
-            return Ok(new ApiResponse<Guid>(video.Id.Value, "Video uploaded successfully."));
+            */
         }
 
         [HttpGet]

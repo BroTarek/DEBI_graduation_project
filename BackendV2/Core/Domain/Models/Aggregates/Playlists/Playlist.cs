@@ -1,63 +1,31 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using YouTubeClone.Domain.Base;
 using YouTubeClone.Domain.ValueObjects;
-using YouTubeClone.Domain.Exceptions;
+using YouTubeClone.Domain.Aggregates.Videos;
 
 namespace YouTubeClone.Domain.Aggregates.Playlists
 {
-    public class Playlist : AggregateRoot<PlaylistId>
+    public abstract class Playlist : AggregateRoot<PlaylistId>
     {
-        public ChannelId ChannelId { get; private set; }
-        public ChannelName Name { get; private set; } // PlaylistName in prompt but ChannelName record was defined or similar, wait
-        public Description Description { get; private set; }
-        public ThumbnailUrl ThumbnailUrl { get; private set; }
-        public bool IsPublic { get; private set; }
-        public DateTime CreatedAt { get; private set; }
-        public DateTime UpdatedAt { get; private set; }
+        public Accessibility Accessibility { get; private set; }
 
-        private readonly List<PlaylistVideoItem> _videoItems = new();
-        public IReadOnlyList<PlaylistVideoItem> VideoItems => _videoItems.OrderBy(vi => vi.Position).ToList().AsReadOnly();
+        private readonly List<Video> _videos = new();
+        public IReadOnlyList<Video> Videos => _videos.AsReadOnly();
 
-        public Playlist(PlaylistId id, ChannelId channelId, ChannelName name, Description description, ThumbnailUrl thumbnailUrl, bool isPublic) : base(id)
+        protected Playlist(PlaylistId id, Accessibility accessibility) : base(id)
         {
-            ChannelId = channelId;
-            Name = name;
-            Description = description;
-            ThumbnailUrl = thumbnailUrl;
-            IsPublic = isPublic;
-            CreatedAt = DateTime.UtcNow;
-            UpdatedAt = DateTime.UtcNow;
+            Accessibility = accessibility;
         }
 
-        public void AddVideo(VideoId videoId, int position)
+        public void AddVideo(Video video)
         {
-            if (_videoItems.Any(v => v.VideoId == videoId))
-                throw new DomainException("Video already in playlist.");
-            _videoItems.Add(new PlaylistVideoItem(videoId, position));
-            UpdatedAt = DateTime.UtcNow;
+            _videos.Add(video);
         }
 
-        public void ReorderVideos(Dictionary<VideoId, int> newPositions)
+        public void RemoveVideo(Video video)
         {
-            foreach (var item in _videoItems)
-            {
-                if (newPositions.TryGetValue(item.VideoId, out int newPosition))
-                {
-                    item.UpdatePosition(newPosition);
-                }
-            }
-            UpdatedAt = DateTime.UtcNow;
-        }
-        public void RemoveVideo(VideoId videoId)
-        {
-            var item = _videoItems.FirstOrDefault(v => v.VideoId == videoId);
-            if (item != null)
-            {
-                _videoItems.Remove(item);
-                UpdatedAt = DateTime.UtcNow;
-            }
+            _videos.Remove(video);
         }
     }
 }

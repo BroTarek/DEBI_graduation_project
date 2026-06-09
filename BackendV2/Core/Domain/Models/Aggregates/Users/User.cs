@@ -3,34 +3,49 @@ using System.Collections.Generic;
 using YouTubeClone.Domain.Base;
 using YouTubeClone.Domain.ValueObjects;
 using YouTubeClone.Domain.Aggregates.Channels;
+using YouTubeClone.Domain.Aggregates.Playlists;
+using YouTubeClone.Domain.Aggregates.WatchHistories;
+using YouTubeClone.Domain.Aggregates.Subscriptions;
 
 namespace YouTubeClone.Domain.Aggregates.Users
 {
     public class User : AggregateRoot<UserId>
     {
-        public Username Username { get; private set; }
-        public Email Email { get; private set; }
-        public PasswordHash PasswordHash { get; private set; }
-        public AvatarUrl AvatarUrl { get; private set; }
-        public DateTime CreatedAt { get; private set; }
+        public UserCredentials Credentials { get; private set; }
+        public UserProfileInfo ProfileInfo { get; private set; }
+        public WatchHistory WatchHistory { get; private set; }
+        public LikedVideosPlaylist LikedVideosPlaylist { get; private set; }
+        public Subscriptions Subscriptions { get; private set; }
+        public Channel? Channel { get; private set; }
 
-        private readonly List<Channel> _channels = new();
-        public IReadOnlyList<Channel> Channels => _channels.AsReadOnly();
+        private readonly List<CustomPlaylist> _customPlaylists = new();
+        public IReadOnlyList<CustomPlaylist> CustomPlaylists => _customPlaylists.AsReadOnly();
 
-        public User(UserId id, Username username, Email email, PasswordHash passwordHash, AvatarUrl avatarUrl) : base(id)
+        public User(
+            UserId id,
+            UserCredentials credentials,
+            UserProfileInfo profileInfo,
+            WatchHistory watchHistory,
+            LikedVideosPlaylist likedVideosPlaylist,
+            Subscriptions subscriptions,
+            Channel? channel = null) : base(id)
         {
-            Username = username;
-            Email = email;
-            PasswordHash = passwordHash;
-            AvatarUrl = avatarUrl;
-            CreatedAt = DateTime.UtcNow;
+            Credentials = credentials;
+            ProfileInfo = profileInfo;
+            WatchHistory = watchHistory;
+            LikedVideosPlaylist = likedVideosPlaylist;
+            Subscriptions = subscriptions;
+            Channel = channel;
         }
 
-        public Channel CreateChannel(ChannelId channelId, ChannelName name, ChannelDescription description)
+        public void AssignChannel(Channel channel)
         {
-            var channel = new Channel(channelId, this.Id, name, description);
-            _channels.Add(channel);
-            return channel;
+            Channel = channel;
+        }
+
+        public void AddCustomPlaylist(CustomPlaylist playlist)
+        {
+            _customPlaylists.Add(playlist);
         }
     }
 }

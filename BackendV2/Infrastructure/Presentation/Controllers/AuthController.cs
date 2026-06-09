@@ -25,7 +25,6 @@ namespace YouTubeClone.Presentation.Controllers
             _userManager = userManager;
             _config = config;
         }
-
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
