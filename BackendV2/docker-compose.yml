@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: yt_clone_sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourSecurePassword123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+
+  web:
+    image: yt_clone_web_api
+    container_name: yt_clone_web_api_container
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=YouTubeCloneDb;User Id=sa;Password=YourSecurePassword123!;TrustServerCertificate=True;MultipleActiveResultSets=true
+      - Cloudinary__CloudName=your-cloud-name
+      - Cloudinary__ApiKey=your-api-key
+      - Cloudinary__ApiSecret=your-api-secret
+    depends_on:
+      - sqlserver
+
+volumes:
+  sqlserver_data:

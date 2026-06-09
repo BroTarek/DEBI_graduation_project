@@ -8,7 +8,6 @@ using Makanak.Web.Middleware;
 using SoftBridge.Services.AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
-
 // 1. Database & Infrastructure
 builder.Services.InjectDatabaseService(builder.Configuration);
 

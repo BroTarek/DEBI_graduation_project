@@ -1,13 +1,13 @@
 
-using .Services.AutoMapper.Admin;
-using .Services.AutoMapper.AmenityMapper;
-using .Services.AutoMapper.BookingMapper;
-using .Services.AutoMapper.DisputeMapper;
-using .Services.AutoMapper.GovernorateMapper;
-using .Services.AutoMapper.NotificationMapper;
-using .Services.AutoMapper.PropertyMapper;
-using .Services.AutoMapper.ReviewMapper;
-using .Services.AutoMapper.User;
+using SoftBridge.Services.AutoMapper.Admin;
+using SoftBridge.Services.AutoMapper.AmenityMapper;
+using SoftBridge.Services.AutoMapper.BookingMapper;
+using SoftBridge.Services.AutoMapper.DisputeMapper;
+using SoftBridge.Services.AutoMapper.GovernorateMapper;
+using SoftBridge.Services.AutoMapper.NotificationMapper;
+using SoftBridge.Services.AutoMapper.PropertyMapper;
+using SoftBridge.Services.AutoMapper.ReviewMapper;
+using SoftBridge.Services.AutoMapper.User;
 using Microsoft.Extensions.DependencyInjection;
 namespace SoftBridge.Services.AutoMapper
 {

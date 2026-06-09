@@ -1,23 +1,22 @@
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Makanak.Abstraction.Storage;
 using Microsoft.Extensions.Configuration;
+using Amazon.S3;
+using Amazon.S3.Model;
 
-// To fully implement this, you will need the AWSSDK.S3 nuget package.
-// For now, this is the structural implementation.
-
-namespace Makanak.Persistance.Services.Storage
+namespace Makanak.Persistance.Services.Storage2
 {
-    public class S3StorageService : IS3StorageService
+    public class AwsS3VideoUploadStrategy : IVideoUploadStrategy
     {
         private readonly string _bucketName;
-        // private readonly IAmazonS3 _s3Client;
+        private readonly IAmazonS3 _s3Client;
 
-        public S3StorageService(IConfiguration configuration)
+        public AwsS3VideoUploadStrategy(IConfiguration configuration, IAmazonS3 s3Client)
         {
             _bucketName = configuration["AWS:BucketName"] ?? "default-bucket-name";
-            // _s3Client = s3Client;
+            _s3Client = s3Client;
         }
 
         public async Task<string> UploadVideoAsync(IFormFile file)
@@ -27,21 +26,16 @@ namespace Makanak.Persistance.Services.Storage
 
             var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
 
-            /*
+            using var stream = file.OpenReadStream();
             var putRequest = new PutObjectRequest
             {
                 BucketName = _bucketName,
                 Key = uniqueFileName,
-                InputStream = file.OpenReadStream(),
+                InputStream = stream,
                 ContentType = file.ContentType
             };
 
             await _s3Client.PutObjectAsync(putRequest);
-            return $"https://{_bucketName}.s3.amazonaws.com/{uniqueFileName}";
-            */
-
-            // Dummy return until AWS SDK is installed
-            await Task.Delay(100); 
             return $"https://{_bucketName}.s3.amazonaws.com/{uniqueFileName}";
         }
 
@@ -49,17 +43,39 @@ namespace Makanak.Persistance.Services.Storage
         {
             if (string.IsNullOrEmpty(fileUrl)) return;
 
-            /*
             var key = ExtractKeyFromUrl(fileUrl);
             var deleteRequest = new DeleteObjectRequest
             {
                 BucketName = _bucketName,
                 Key = key
             };
-            await _s3Client.DeleteObjectAsync(deleteRequest);
-            */
 
-            await Task.Delay(100); 
+            await _s3Client.DeleteObjectAsync(deleteRequest);
+        }
+
+        private string ExtractKeyFromUrl(string fileUrl)
+        {
+            try
+            {
+                var uri = new Uri(fileUrl);
+                var absolutePath = uri.AbsolutePath.TrimStart('/');
+                
+                if (uri.Host.StartsWith(_bucketName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return absolutePath;
+                }
+
+                if (absolutePath.StartsWith(_bucketName + "/", StringComparison.OrdinalIgnoreCase))
+                {
+                    return absolutePath.Substring(_bucketName.Length + 1);
+                }
+
+                return absolutePath;
+            }
+            catch (Exception)
+            {
+                return fileUrl;
+            }
         }
     }
 }

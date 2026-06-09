@@ -50,5 +50,14 @@ namespace YouTubeClone.Domain.Aggregates.Playlists
             }
             UpdatedAt = DateTime.UtcNow;
         }
+        public void RemoveVideo(VideoId videoId)
+        {
+            var item = _videoItems.FirstOrDefault(v => v.VideoId == videoId);
+            if (item != null)
+            {
+                _videoItems.Remove(item);
+                UpdatedAt = DateTime.UtcNow;
+            }
+        }
     }
 }

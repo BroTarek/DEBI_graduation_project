@@ -1,4 +1,4 @@
-using YDbContext.Domain.Models.Identity;
+using Makanak.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +15,9 @@ using YouTubeClone.Domain.Aggregates.Subscriptions;
 using YouTubeClone.Domain.Aggregates.Interactions;
 using YouTubeClone.Domain.Aggregates.WatchHistories;
 
-namespace YDbContext.Persistance.Contexts
+namespace Makanak.Persistance.Contexts
 {
-    public class YDbContextDbContext(DbContextOptions<YDbContextDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+    public class MakanakDbContext(DbContextOptions<MakanakDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<User> DomainUsers { get; set; }
         public DbSet<Channel> Channels { get; set; }

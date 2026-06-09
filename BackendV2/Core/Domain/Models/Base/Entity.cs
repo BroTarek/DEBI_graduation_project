@@ -1,8 +1,10 @@
+using Makanak.Domain.Contracts;
+
 namespace YouTubeClone.Domain.Base
 {
-    public abstract class Entity<TId>
+    public abstract class Entity<TId> : IEntity<TId>
     {
-        public TId Id { get; protected set; }
+        public TId Id { get; set; }
         
         protected Entity(TId id) => Id = id;
         protected Entity() { }

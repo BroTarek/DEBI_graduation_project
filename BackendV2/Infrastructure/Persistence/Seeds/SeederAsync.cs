@@ -1,8 +1,5 @@
 using Makanak.Domain.EnumsHelper.User; 
-using Makanak.Domain.Exceptions.NotFound;
 using Makanak.Domain.Models.Identity;
-using Makanak.Domain.Models.LocationEntities;
-using Makanak.Domain.Models.PropertyEntities;
 using Makanak.Persistance.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Core.Domain.Contracts
+namespace YouTubeClone.Domain.Contracts
 {
     public interface IEntity<TKey>
     {
