@@ -1,100 +1,69 @@
-﻿using YouTubeClone.Domain.Contracts.UOW;
-using YouTubeClone.Presentation.Controllers;
-using YouTubeClone.Shared.Responses;
+using YouTubeClone.Core.Services;
+using YouTubeClone.Shared.DTOs.Comments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using YouTubeClone.Domain.Aggregates.Channels;
-using YouTubeClone.Domain.Aggregates.Videos;
-using YouTubeClone.Domain.ValueObjects;
 
 namespace YouTubeClone.Presentation.Controllers
 {
     [Authorize]
     public class CommentController : BaseController
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICommentService _commentService;
 
-        public CommentController(IUnitOfWork unitOfWork)
+        public CommentController(ICommentService commentService)
         {
-            _unitOfWork = unitOfWork;
+            _commentService = commentService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateComment([FromBody] PostCommentDto dto)
+        [HttpPost("video")]
+        public async Task<IActionResult> CreateCommentOnVideo([FromBody] CreateVideoCommentDto dto)
         {
-            //is this comment a direct one or a reply to another comment
-            //is this comment to a video or a post
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var commentId = await _commentService.CreateCommentOnVideo(dto);
+            return Ok(new { Id = commentId });
+        }
+
+        [HttpPost("post")]
+        public async Task<IActionResult> CreateCommentOnPost([FromBody] CreatePostCommentDto dto)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var commentId = await _commentService.CreateCommentOnPost(dto);
+            return Ok(new { Id = commentId });
         }
 
         [HttpGet("video/{videoId}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetComments(Guid videoId)
+        public async Task<IActionResult> GetCommentsOnVideo(Guid videoId)
         {
-            //get the comments of a post or a video
-            //get nested replies
-
+            var comments = await _commentService.GetCommentsOnVideo(videoId);
+            return Ok(comments);
         }
+
+        [HttpGet("post/{postId}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetCommentsOnPost(Guid postId)
+        {
+            var comments = await _commentService.GetCommentsOnPost(postId);
+            return Ok(comments);
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComment(Guid id)
         {
-            
-            //is this comment a direct one or a reply to another comment,
-
-            //is this comment to a video or a post
-
-            // deleteing this comment should delete depending comments
-
+            await _commentService.DeleteComment(id);
+            return NoContent();
         }
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateComment(Guid id)
+        public async Task<IActionResult> UpdateComment(Guid id, [FromBody] UpdateCommentDto dto)
         {
+            if (id != dto.Id) return BadRequest("Id mismatch.");
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            await _commentService.UpdateComment(dto);
+            return NoContent();
         }
-        
-    }
-
-    public class VideoWithCommentsSpecification : SoftBridge.Services.Specification.BaseSpecification<Video, VideoId>
-    {
-        public VideoWithCommentsSpecification(VideoId videoId) : base(v => v.Id.Value == videoId.Value)
-        {
-            AddInclude("Comments");
-            AddInclude("Comments.Replies");
-        }
-    }
-
-    public class CreateVideoCommentDto
-    {
-        public Guid VideoId { get; set; }
-        public string Content { get; set; } = null!;
-        public Guid? ParentCommentId { get; set; }
-    }
-    public class CreatePostCommentDto
-    {
-        public Guid PostId { get; set; }
-        public string Content { get; set; } = null!;
-        public Guid? ParentCommentId { get; set; }
-    }
-
-    public class CommentDto
-    {
-        public Guid Id { get; set; }
-        public Guid AuthorId { get; set; }
-        public string Content { get; set; } = null!;
-        public DateTime CreatedAt { get; set; }
-        public List<CommentDto> Replies { get; set; } = new();
-    }
-    public class UpdateCommentDto
-    {
-        public Guid Id { get; set; }
-        public string Content { get; set; } = null!;
-    }
-
-    public class DeleteCommentDto
-    {
-        public Guid Id { get; set; }
     }
 }
