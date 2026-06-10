@@ -1,16 +1,15 @@
 using System;
+using YouTubeClone.Domain.ValueObjects;
 
 namespace YouTubeClone.Domain.Aggregates.Playlists
 {
     public class CustomPlaylist : Playlist
     {
-        public string Name { get; private set; }
         public string OwnerId { get; private set; }
 
-        public CustomPlaylist(PlaylistId id, Accessibility accessibility, string name, string ownerId) 
-            : base(id, accessibility)
+        public CustomPlaylist(PlaylistId id, string ownerId, string name, string description, string thumbnailUrl, Accessibility accessibility) 
+            : base(id, name, description, thumbnailUrl, accessibility)
         {
-            Name = name;
             OwnerId = ownerId;
         }
     }

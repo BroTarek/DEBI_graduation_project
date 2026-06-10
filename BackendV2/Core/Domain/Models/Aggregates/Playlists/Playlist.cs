@@ -8,13 +8,26 @@ namespace YouTubeClone.Domain.Aggregates.Playlists
 {
     public abstract class Playlist : AggregateRoot<PlaylistId>
     {
-        public Accessibility Accessibility { get; private set; }
+        public string Name { get; protected set; }
+        public string Description { get; protected set; }
+        public string ThumbnailUrl { get; protected set; }
+        public Accessibility Accessibility { get; protected set; }
 
         private readonly List<Video> _videos = new();
         public IReadOnlyList<Video> Videos => _videos.AsReadOnly();
 
-        protected Playlist(PlaylistId id, Accessibility accessibility) : base(id)
+        protected Playlist(PlaylistId id, string name, string description, string thumbnailUrl, Accessibility accessibility) : base(id)
         {
+            Name = name;
+            Description = description;
+            ThumbnailUrl = thumbnailUrl;
+            Accessibility = accessibility;
+        }
+
+        public void UpdateDetails(string name, string description, Accessibility accessibility)
+        {
+            Name = name;
+            Description = description;
             Accessibility = accessibility;
         }
 
