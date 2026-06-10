@@ -1,9 +1,9 @@
-using YouTubeClone.Domain.Exceptions;
-using Makanak.Shared.Responses;
+﻿using YouTubeClone.Domain.Exceptions;
+using YouTubeClone.Shared.Responses;
 using System;
 using System.Text.Json;
 
-namespace Makanak.Web.Middleware
+namespace YouTubeClone.Web.Middleware
 {
     public class GlobalErrorHandlerMiddleware(RequestDelegate next, ILogger<GlobalErrorHandlerMiddleware> logger, IWebHostEnvironment env)
     {

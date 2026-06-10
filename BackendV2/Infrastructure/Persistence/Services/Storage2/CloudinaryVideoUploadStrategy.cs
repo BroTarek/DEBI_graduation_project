@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 
-namespace Makanak.Persistance.Services.Storage2
+namespace YouTubeClone.Persistance.Services.Storage2
 {
     public class CloudinaryVideoUploadStrategy : IUploadStrategy
     {

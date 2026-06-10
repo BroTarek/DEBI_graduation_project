@@ -1,6 +1,6 @@
-using Makanak.Domain.Contracts;
-using Makanak.Domain.Contracts.Specifications;
-using Makanak.Services.Specifications;
+﻿using YouTubeClone.Domain.Contracts;
+using YouTubeClone.Domain.Contracts.Specifications;
+using YouTubeClone.Services.Specifications;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;

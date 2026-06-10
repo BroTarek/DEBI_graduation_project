@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Makanak.Shared.Responses
+namespace YouTubeClone.Shared.Responses
 {
     public class ApiResponse<T>
     {

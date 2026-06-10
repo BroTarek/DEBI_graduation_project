@@ -1,11 +1,11 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Collections.Generic;
 using System.Text.Json;
 using YouTubeClone.Domain.Aggregates.Videos;
 using YouTubeClone.Domain.ValueObjects;
 
-namespace Makanak.Persistance.Configurations
+namespace YouTubeClone.Persistance.Configurations
 {
     public class VideoConfiguration : IEntityTypeConfiguration<Video>
     {

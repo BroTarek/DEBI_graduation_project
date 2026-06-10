@@ -1,10 +1,10 @@
-using Makanak.Domain.Contracts.InitializerDB;
+﻿using YouTubeClone.Domain.Contracts.InitializerDB;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Makanak.Persistance.Extensions
+namespace YouTubeClone.Persistance.Extensions
 {
     public static class DbInitializerExtension
     {

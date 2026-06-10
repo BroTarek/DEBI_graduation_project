@@ -1,11 +1,11 @@
-using Makanak.Domain.EnumsHelper.User; 
-using Makanak.Domain.Models.Identity;
-using Makanak.Persistance.Contexts;
+﻿using YouTubeClone.Domain.EnumsHelper.User; 
+using YouTubeClone.Domain.Models.Identity;
+using YouTubeClone.Persistance.Contexts;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
-namespace Makanak.Persistance.Seeds
+namespace YouTubeClone.Persistance.Seeds
 {
     public static class SeederAsync
     {
@@ -37,8 +37,8 @@ namespace Makanak.Persistance.Seeds
                 UserType = UserTypes.Admin,
                 Name = "System Admin",
                 PhoneNumber = "01225869788",
-                UserName = "ADMIN@MAKANAK.SITE",
-                Email = "admin@makanak.site",
+                UserName = "ADMIN@YouTubeClone.SITE",
+                Email = "admin@YouTubeClone.site",
                 EmailConfirmed = true,
             }
         };

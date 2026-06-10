@@ -1,10 +1,10 @@
-using Makanak.Persistance.Extensions;
-using Makanak.Persistance.Hubs;
-using Makanak.Persistance.ProgramServices;
-using Makanak.Presentation.Extensions;
-using Makanak.Shared.Common.Settings;
-using Makanak.Web.Extensions;
-using Makanak.Web.Middleware;
+﻿using YouTubeClone.Persistance.Extensions;
+using YouTubeClone.Persistance.Hubs;
+using YouTubeClone.Persistance.ProgramServices;
+using YouTubeClone.Presentation.Extensions;
+using YouTubeClone.Shared.Common.Settings;
+using YouTubeClone.Web.Extensions;
+using YouTubeClone.Web.Middleware;
 using SoftBridge.Services.AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);

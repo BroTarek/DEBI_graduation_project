@@ -1,10 +1,10 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 
-namespace Makanak.Persistance.Services.Storage2
+namespace YouTubeClone.Persistance.Services.Storage2
 {
     public class LocalUploadStrategy : IUploadStrategy
     {

@@ -1,11 +1,11 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using YouTubeClone.Domain.Aggregates.Interactions;
 using YouTubeClone.Domain.Aggregates.Subscriptions;
 using YouTubeClone.Domain.Aggregates.WatchHistories;
 using YouTubeClone.Domain.ValueObjects;
 
-namespace Makanak.Persistance.Configurations
+namespace YouTubeClone.Persistance.Configurations
 {
     public class UserInteractionConfiguration : IEntityTypeConfiguration<UserInteraction>
     {

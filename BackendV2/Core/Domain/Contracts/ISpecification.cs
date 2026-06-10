@@ -1,11 +1,11 @@
-using Makanak.Domain.Models;
-using Makanak.Services.Specifications;
+﻿using YouTubeClone.Domain.Models;
+using YouTubeClone.Services.Specifications;
 using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Makanak.Domain.Contracts.Specifications
+namespace YouTubeClone.Domain.Contracts.Specifications
 {
     public interface ISpecifications<TEntity, TKey> where TEntity : class, IEntity<TKey>
     {

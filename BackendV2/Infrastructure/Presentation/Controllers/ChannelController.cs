@@ -1,6 +1,6 @@
-using Makanak.Domain.Contracts.UOW;
-using Makanak.Presentation.Controllers;
-using Makanak.Shared.Responses;
+﻿using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Presentation.Controllers;
+using YouTubeClone.Shared.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;

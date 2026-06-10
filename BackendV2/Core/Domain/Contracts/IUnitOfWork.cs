@@ -1,12 +1,12 @@
-using Makanak.Domain.Contracts.Repos;
-using Makanak.Domain.Contracts;
+﻿using YouTubeClone.Domain.Contracts.Repos;
+using YouTubeClone.Domain.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Makanak.Domain.Contracts.UOW
+namespace YouTubeClone.Domain.Contracts.UOW
 {
     public interface IUnitOfWork
     {

@@ -1,9 +1,9 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using YouTubeClone.Domain.Aggregates.Users;
 using YouTubeClone.Domain.ValueObjects;
 
-namespace Makanak.Persistance.Configurations
+namespace YouTubeClone.Persistance.Configurations
 {
     public class UserConfiguration : IEntityTypeConfiguration<User>
     {

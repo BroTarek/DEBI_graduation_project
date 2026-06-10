@@ -1,10 +1,10 @@
-// using Makanak.Domain.Models.Identity;
-// using Makanak.Persistance.Contexts;
-// using Makanak.Shared.Responses;
+﻿// using YouTubeClone.Domain.Models.Identity;
+// using YouTubeClone.Persistance.Contexts;
+// using YouTubeClone.Shared.Responses;
 // using Microsoft.AspNetCore.Identity;
 // using Microsoft.AspNetCore.RateLimiting;
 
-// namespace Makanak.Web.Extensions
+// namespace YouTubeClone.Web.Extensions
 // {
 //    public static class IdentityServiceExtensions
 //    {
@@ -25,7 +25,7 @@
 //                     options.Tokens.ChangeEmailTokenProvider = TokenOptions.DefaultEmailProvider;
 //                 })
 //                      .AddRoles<IdentityRole>()
-//                      .AddEntityFrameworkStores<MakanakDbContext>()
+//                      .AddEntityFrameworkStores<YouTubeCloneDbContext>()
 //                      .AddDefaultTokenProviders();
                
 //                 services.Configure<DataProtectionTokenProviderOptions>(options =>

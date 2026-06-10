@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Makanak.Domain.Contracts.InitializerDB
+namespace YouTubeClone.Domain.Contracts.InitializerDB
 {
     public interface IDbInitializer
     {

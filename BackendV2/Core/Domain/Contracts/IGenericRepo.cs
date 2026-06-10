@@ -1,12 +1,12 @@
-using Makanak.Domain.Contracts.Specifications;
-using Makanak.Domain.Contracts;
+﻿using YouTubeClone.Domain.Contracts.Specifications;
+using YouTubeClone.Domain.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Makanak.Domain.Contracts.Repos
+namespace YouTubeClone.Domain.Contracts.Repos
 {
     public interface IGenericRepo<TEntity, TKey> where TEntity : class, IEntity<TKey>
     {

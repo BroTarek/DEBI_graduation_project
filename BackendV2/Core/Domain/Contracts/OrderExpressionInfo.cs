@@ -1,9 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace Makanak.Services.Specifications
+namespace YouTubeClone.Services.Specifications
 {
     public class OrderExpressionInfo<TEntity>
     {

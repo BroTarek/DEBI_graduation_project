@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 
-namespace Makanak.Presentation.Extensions
+namespace YouTubeClone.Presentation.Extensions
 {
     public static class SwaggerServiceExtensions
     {

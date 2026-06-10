@@ -1,5 +1,5 @@
-using Makanak.Presentation.Controllers;
-using Makanak.Shared.Responses;
+﻿using YouTubeClone.Presentation.Controllers;
+using YouTubeClone.Shared.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;

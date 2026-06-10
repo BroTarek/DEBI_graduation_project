@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -6,7 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Amazon.S3;
 using Amazon.S3.Model;
 
-namespace Makanak.Persistance.Services.Storage2
+namespace YouTubeClone.Persistance.Services.Storage2
 {
     public class AwsS3VideoUploadStrategy : IUploadStrategy
     {

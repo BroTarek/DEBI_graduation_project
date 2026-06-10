@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Makanak.Persistance.Hubs
+namespace YouTubeClone.Persistance.Hubs
 {
     [Authorize]
     public class NotificationHub : Hub

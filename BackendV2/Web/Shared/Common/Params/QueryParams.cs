@@ -1,9 +1,9 @@
-using Makanak.Domain.EnumsHelper.User;
+﻿using YouTubeClone.Domain.EnumsHelper.User;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Makanak.Shared.Common.Params
+namespace YouTubeClone.Shared.Common.Params
 {
     public class QueryParams : BaseQueryParams  
     {

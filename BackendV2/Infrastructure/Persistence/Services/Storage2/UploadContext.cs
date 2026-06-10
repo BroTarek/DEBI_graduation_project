@@ -1,7 +1,7 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace Makanak.Persistance.Services.Storage2
+namespace YouTubeClone.Persistance.Services.Storage2
 {
     public class UploadContext
     {

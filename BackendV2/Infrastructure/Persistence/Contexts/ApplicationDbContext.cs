@@ -1,4 +1,4 @@
-using Makanak.Domain.Models.Identity;
+﻿using YouTubeClone.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,9 +15,9 @@ using YouTubeClone.Domain.Aggregates.Subscriptions;
 using YouTubeClone.Domain.Aggregates.Interactions;
 using YouTubeClone.Domain.Aggregates.WatchHistories;
 
-namespace Makanak.Persistance.Contexts
+namespace YouTubeClone.Persistance.Contexts
 {
-    public class MakanakDbContext(DbContextOptions<MakanakDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+    public class YouTubeCloneDbContext(DbContextOptions<YouTubeCloneDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<User> DomainUsers { get; set; }
         public DbSet<Channel> Channels { get; set; }

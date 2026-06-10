@@ -1,5 +1,5 @@
-using Makanak.Domain.Contracts.UOW;
-using Makanak.Persistance.Evaluator;
+﻿using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Persistance.Evaluator;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using YouTubeClone.Domain.Aggregates.Videos;
 using YouTubeClone.Services.Specifications;
 
-using Makanak.Persistance.Services.Storage2;
+using YouTubeClone.Persistance.Services.Storage2;
 
 namespace YouTubeClone.Domain.Services
 {

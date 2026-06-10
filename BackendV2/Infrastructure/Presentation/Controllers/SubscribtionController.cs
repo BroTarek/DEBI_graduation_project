@@ -1,89 +1,51 @@
-using Makanak.Domain.Contracts.UOW;
-using Makanak.Presentation.Controllers;
-using Makanak.Shared.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using YouTubeClone.Domain.Aggregates.Subscribtion;
-using YouTubeClone.Domain.Aggregates.Subscriptions;
-using YouTubeClone.Domain.ValueObjects;
+using YouTubeClone.Core.Services;
+using YouTubeClone.Presentation.Controllers;
+using YouTubeClone.Shared.Responses;
 
 namespace YouTubeClone.Presentation.Controllers
 {
     [Authorize]
-    public class Subscribtionontroller : BaseController
+    [Route("api/[controller]")]
+    public class SubscribtionController : BaseController
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISubscribtionService _subscribtionService;
 
-        public Subscribtionontroller(IUnitOfWork unitOfWork)
+        public SubscribtionController(ISubscribtionService subscribtionService)
         {
-            _unitOfWork = unitOfWork;
+            _subscribtionService = subscribtionService;
         }
-
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetSubscribtion (Guid id)
+        public async Task<ActionResult<ApiResponse<List<SubscribtionBadgeDTO>>>> GetSubscribtionedChannels(Guid id)
         {
-            var Subscribtiond = new Subscribtiond(id);
-            var Subscribtionepo = _unitOfWork.GetRepo<Subscribtion Subscribtiond>();
-            var Subscribtion= await Subscribtionepo.GetByIdAsync(Subscribtiond);
-            if (Subscribtion== null)
-            {
-                return NotFound(new ApiResponse<string>("Subscribtionnot found.", 404));
-            }
-
-            return Ok(new ApiResponse<SubscribtionetailsDto>(new SubscribtionetailsDto
-            {
-                Id = SubscribtionId.Value,
-                OwnerId = SubscribtionOwnerId.Value,
-                Name = SubscribtionName.Value,
-                Description = SubscribtionDescription.Value,
-                CreatedAt = SubscribtionCreatedAt
-            }, "Subscribtionretrieved successfully."));
+            var result = await _subscribtionService.GetAllSubscribedChannels(id);
+            return Ok(new ApiResponse<List<SubscribtionBadgeDTO>>(result, "Subscribed channels retrieved successfully."));
         }  
-        public async Task<IActionResult> GetSubscribedChannelsVideos (Guid id)
-        { 
-            //////////////////////////////////////////////////////////////////////
-            /// 
-            /// 
-            /// SubscribedChannelsVideosSpecification
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// 
-            /// ///////////////////////////////////////////////////////////////////
-            var Subscribtiond = new Subscribtiond(id);
-            var Subscribtionepo = _unitOfWork.GetRepo<Subscribtion Subscribtiond>();
-            var Subscribtion= await Subscribtionepo.GetByIdAsync(Subscribtiond);
-            if (Subscribtion== null)
-            {
-                return NotFound(new ApiResponse<string>("Subscribtionnot found.", 404));
-            }
 
-            return Ok(new ApiResponse<SubscribtionetailsDto>(new SubscribtionetailsDto
-            {
-                Id = SubscribtionId.Value,
-                OwnerId = SubscribtionOwnerId.Value,
-                Name = SubscribtionName.Value,
-                Description = SubscribtionDescription.Value,
-                CreatedAt = SubscribtionCreatedAt
-            }, "Subscribtionretrieved successfully."));
+        [HttpGet("{id}/videos")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<List<SubscribedChannelsVideosDTO>>>> GetSubscribedChannelsVideos(Guid id)
+        { 
+            var result = await _subscribtionService.GetAllSubscribedChannelsVideos(id);
+            return Ok(new ApiResponse<List<SubscribedChannelsVideosDTO>>(result, "Subscribed channels videos retrieved successfully."));
+        }
+
+        [HttpGet("{id}/posts")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<List<SubscribedChannelsPostsDTO>>>> GetSubscribedChannelsPosts(Guid id)
+        {
+            var result = await _subscribtionService.GetAllSubscribedChannelsPosts(id);
+            return Ok(new ApiResponse<List<SubscribedChannelsPostsDTO>>(result, "Subscribed channels posts retrieved successfully."));
         }
 
         [HttpPost("{id}/subscribe")]
-        public async Task<IActionResult> ToggleSubscribe(Guid id)
+        public async Task<IActionResult> Subscribe(Guid id)
         {
             var userIdStr = GetUserId();
             if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userIdGuid))
@@ -91,53 +53,21 @@ namespace YouTubeClone.Presentation.Controllers
                 return Unauthorized(new ApiResponse<string>("Unauthorized user.", 401));
             }
 
-            var subscriberId = new UserId(userIdGuid);
-            var Subscribtiond = new Subscribtiond(id);
-
-            var Subscribtionepo = _unitOfWork.GetRepo<Subscribtion Subscribtiond>();
-            var Subscribtion= await Subscribtionepo.GetByIdAsync(Subscribtiond);
-            if (Subscribtion== null)
-            {
-                return NotFound(new ApiResponse<string>("Subscribtionnot found.", 404));
-            }
-
-            if (SubscribtionOwnerId.Value == subscriberId.Value)
-            {
-                return BadRequest(new ApiResponse<string>("You cannot subscribe to your own Subscribtion", 400));
-            }
-
-            var subRepo = _unitOfWork.GetRepo<Subscription, SubscriptionId>();
-            var allSubs = await subRepo.GetAllAsync();
-            var existingSub = allSubs.FirstOrDefault(s => s.SubscriberId.Value == subscriberId.Value && s.Subscribtiond.Value == Subscribtiond.Value);
-
-            if (existingSub != null)
-            {
-                await subRepo.DeleteAsync(existingSub);
-                await _unitOfWork.SaveChangesAsync();
-                return Ok(new ApiResponse<string>("Unsubscribed successfully."));
-            }
-            else
-            {
-                var sub = new Subscription(new SubscriptionId(Guid.NewGuid()), subscriberId, Subscribtiond);
-                await subRepo.AddAsync(sub);
-                await _unitOfWork.SaveChangesAsync();
-                return Ok(new ApiResponse<string>("Subscribed successfully."));
-            }
+            await _subscribtionService.AddToSubscribtions(id, userIdGuid);
+            return Ok(new ApiResponse<string>("Subscribed successfully."));
         }
-    }
 
-    public class CreateSubscribtionDTO
-    {
-        public string Name { get; set; } = null!;
-        public string Description { get; set; } = string.Empty;
-    }
+        [HttpPost("{id}/unsubscribe")]
+        public async Task<IActionResult> Unsubscribe(Guid id)
+        {
+            var userIdStr = GetUserId();
+            if (string.IsNullOrEmpty(userIdStr) || !Guid.TryParse(userIdStr, out var userIdGuid))
+            {
+                return Unauthorized(new ApiResponse<string>("Unauthorized user.", 401));
+            }
 
-    public class SubscribtionDetailsDto
-    {
-        public Guid Id { get; set; }
-        public Guid OwnerId { get; set; }
-        public string Name { get; set; } = null!;
-        public string Description { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
+            await _subscribtionService.RemoveFromSubscribtions(id, userIdGuid);
+            return Ok(new ApiResponse<string>("Unsubscribed successfully."));
+        }
     }
 }

@@ -1,4 +1,4 @@
-namespace Makanak.Domain.EnumsHelper.User
+﻿namespace YouTubeClone.Domain.EnumsHelper.User
 {
     public enum UserStatus
     {

@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Makanak.Shared.Common
+namespace YouTubeClone.Shared.Common
 {
     public class Pagination<TEntity>
     {

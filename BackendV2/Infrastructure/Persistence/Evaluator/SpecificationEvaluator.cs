@@ -1,6 +1,6 @@
-using Makanak.Domain.Contracts;
-using Makanak.Domain.Contracts.Specifications;
-using Makanak.Domain.Models;
+﻿using YouTubeClone.Domain.Contracts;
+using YouTubeClone.Domain.Contracts.Specifications;
+using YouTubeClone.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq.Expressions;
 using System.Text;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
-namespace Makanak.Persistance.Evaluator
+namespace YouTubeClone.Persistance.Evaluator
 {
     public static class SpecificationEvaluator
     {

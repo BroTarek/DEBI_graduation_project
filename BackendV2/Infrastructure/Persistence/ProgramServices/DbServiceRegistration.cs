@@ -1,29 +1,29 @@
-
-using Makanak.Persistance.Contexts;
+﻿
+using YouTubeClone.Persistance.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Makanak.Abstraction.Storage;
-using Makanak.Persistance.Services.Storage;
-using Makanak.Persistance.Services.Storage2;
+using YouTubeClone.Abstraction.Storage;
+using YouTubeClone.Persistance.Services.Storage;
+using YouTubeClone.Persistance.Services.Storage2;
 using Amazon.S3;
-using Makanak.Domain.Contracts.InitializerDB;
-using Makanak.Persistance.Implements.InitializerImplement;
-using Makanak.Domain.Contracts.UOW;
+using YouTubeClone.Domain.Contracts.InitializerDB;
+using YouTubeClone.Persistance.Implements.InitializerImplement;
+using YouTubeClone.Domain.Contracts.UOW;
 using Core.Domain.Contracts.Repos;
-using Makanak.Persistance.Implements;
+using YouTubeClone.Persistance.Implements;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Makanak.Persistance.ProgramServices
+namespace YouTubeClone.Persistance.ProgramServices
 {
     public static class AddDbServices
     {
         public static IServiceCollection InjectDatabaseService(this IServiceCollection services, IConfiguration configuration)
         {
             // Add DbContext
-            services.AddDbContext<MakanakDbContext>(options =>
+            services.AddDbContext<YouTubeCloneDbContext>(options =>
                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
                
             // Add Storage Services

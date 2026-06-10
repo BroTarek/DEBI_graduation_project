@@ -1,10 +1,10 @@
-using Makanak.Shared.Dto_s.Lookup;
+﻿using YouTubeClone.Shared.Dto_s.Lookup;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Text;
 
-namespace Makanak.Shared.EnumsHelper
+namespace YouTubeClone.Shared.EnumsHelper
 {
     public static class EnumResolver
     {

@@ -1,20 +1,20 @@
-using Core.Domain.Contracts.Repos;
-using Makanak.Domain.Contracts;
-using Makanak.Domain.Contracts.Repos;
-using Makanak.Domain.Contracts.UOW;
-using Makanak.Persistance.Contexts;
+﻿using Core.Domain.Contracts.Repos;
+using YouTubeClone.Domain.Contracts;
+using YouTubeClone.Domain.Contracts.Repos;
+using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Persistance.Contexts;
 using System;
 using System.Collections;
 using System.Threading.Tasks;
 
-namespace Makanak.Persistance.Implements
+namespace YouTubeClone.Persistance.Implements
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private readonly MakanakDbContext _context;
+        private readonly YouTubeCloneDbContext _context;
         private Hashtable _repositories;
 
-        public UnitOfWork(MakanakDbContext context)
+        public UnitOfWork(YouTubeCloneDbContext context)
         {
             _context = context;
         }

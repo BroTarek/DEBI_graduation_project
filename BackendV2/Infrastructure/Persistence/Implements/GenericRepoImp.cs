@@ -1,21 +1,21 @@
-using Core.Domain.Contracts.Repos;
-using Makanak.Domain.Contracts;
-using Makanak.Domain.Contracts.Specifications;
-using Makanak.Persistance.Contexts;
-using Makanak.Persistance.Evaluator;
+﻿using Core.Domain.Contracts.Repos;
+using YouTubeClone.Domain.Contracts;
+using YouTubeClone.Domain.Contracts.Specifications;
+using YouTubeClone.Persistance.Contexts;
+using YouTubeClone.Persistance.Evaluator;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Makanak.Persistance.Implements
+namespace YouTubeClone.Persistance.Implements
 {
     public class GenericRepoImp<TEntity, TKey> : IGenericRepo<TEntity, TKey> where TEntity : class, IEntity<TKey>
     {
-        private readonly MakanakDbContext _context;
+        private readonly YouTubeCloneDbContext _context;
 
-        public GenericRepoImp(MakanakDbContext context)
+        public GenericRepoImp(YouTubeCloneDbContext context)
         {
             _context = context;
         }

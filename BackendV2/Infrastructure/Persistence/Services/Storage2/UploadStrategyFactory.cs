@@ -1,7 +1,7 @@
-using System;
+﻿using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Makanak.Persistance.Services.Storage2
+namespace YouTubeClone.Persistance.Services.Storage2
 {
     public class UploadStrategyFactory : IUploadStrategyFactory
     {

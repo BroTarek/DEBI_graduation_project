@@ -1,21 +1,21 @@
-using Makanak.Domain.Contracts.InitializerDB;
-using Makanak.Domain.Models.Identity;
-using Makanak.Persistance.Contexts;
-using Makanak.Persistance.Seeds;
+﻿using YouTubeClone.Domain.Contracts.InitializerDB;
+using YouTubeClone.Domain.Models.Identity;
+using YouTubeClone.Persistance.Contexts;
+using YouTubeClone.Persistance.Seeds;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Makanak.Persistance.Implements.InitializerImplement
+namespace YouTubeClone.Persistance.Implements.InitializerImplement
 {
-    public class DbInitialized(MakanakDbContext makanakDbContext , RoleManager<IdentityRole> roleManager , UserManager<ApplicationUser> userManager) : IDbInitializer
+    public class DbInitialized(YouTubeCloneDbContext YouTubeCloneDbContext , RoleManager<IdentityRole> roleManager , UserManager<ApplicationUser> userManager) : IDbInitializer
     {
         public async Task DataSeedAsync()
         {
             try
             {
-                var pendingMigrations = await makanakDbContext.Database.GetPendingMigrationsAsync();
+                var pendingMigrations = await YouTubeCloneDbContext.Database.GetPendingMigrationsAsync();
                 if (pendingMigrations != null && pendingMigrations.Any())
-                    await makanakDbContext.Database.MigrateAsync();
+                    await YouTubeCloneDbContext.Database.MigrateAsync();
             }
             catch (Exception)
             {
