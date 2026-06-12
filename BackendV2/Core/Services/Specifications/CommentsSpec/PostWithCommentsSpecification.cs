@@ -1,7 +1,13 @@
- public class PostWithCommentsSpecification : SoftBridge.Services.Specification.BaseSpecification<Post, PostId>{
-        public PostWithCommentsSpecification(Guid postId) : base(p => p.Id.Value == postId.Value)
+using System;
+using YouTubeClone.Domain.Aggregates.Channels;
+
+namespace YouTubeClone.Core.Services.Specifications.CommentsSpec
+{
+    public class PostWithCommentsSpecification : SoftBridge.Services.Specification.BaseSpecification<Post, PostId>{
+        public PostWithCommentsSpecification(Guid postId) : base(p => p.Id.Value == postId)
         {
             AddInclude("Comments");
             AddInclude("Comments.Replies");
         }
     }
+}

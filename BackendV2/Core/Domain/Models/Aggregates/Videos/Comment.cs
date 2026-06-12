@@ -20,5 +20,10 @@ namespace YouTubeClone.Domain.Aggregates.Videos
             Content = content;
             ParentComment = parentComment;
         }
+
+        public void UpdateContent(string content)
+        {
+            Content = content;
+        }
     }
 }

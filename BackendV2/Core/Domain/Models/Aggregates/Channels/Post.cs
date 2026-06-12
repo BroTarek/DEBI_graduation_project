@@ -17,5 +17,11 @@ namespace YouTubeClone.Domain.Aggregates.Channels
             PostContent = postContent;
             Accessibility = accessibility;
         }
+
+        public void Update(string postContent, Accessibility accessibility)
+        {
+            PostContent = postContent;
+            Accessibility = accessibility;
+        }
     }
 }

@@ -46,20 +46,7 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.Post
 
             if (post != null)
             {
-                // Note: The Post model properties are private set. 
-                // In a real application, you'd call a method like post.UpdateContent(...)
-                // Using reflection here for the mock setup, assuming the aggregate root will eventually have proper methods
-                var contentProp = typeof(YouTubeClone.Domain.Aggregates.Channels.Post).GetProperty("PostContent");
-                if (contentProp != null && contentProp.CanWrite)
-                {
-                    contentProp.SetValue(post, dto.PostContent);
-                }
-
-                var accessibilityProp = typeof(YouTubeClone.Domain.Aggregates.Channels.Post).GetProperty("Accessibility");
-                if (accessibilityProp != null && accessibilityProp.CanWrite)
-                {
-                    accessibilityProp.SetValue(post, dto.Accessibility);
-                }
+                post.Update(dto.PostContent, dto.Accessibility);
 
                 await postRepo.UpdateAsync(post);
                 await _unitOfWork.SaveChangesAsync();

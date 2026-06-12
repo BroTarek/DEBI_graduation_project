@@ -130,11 +130,7 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.Comment
 
             if (comment != null)
             {
-                var contentProp = typeof(YouTubeClone.Domain.Aggregates.Videos.Comment).GetProperty("Content");
-                if (contentProp != null && contentProp.CanWrite)
-                {
-                    contentProp.SetValue(comment, dto.Content);
-                }
+                comment.UpdateContent(dto.Content);
                 
                 await commentRepo.UpdateAsync(comment);
                 await _unitOfWork.SaveChangesAsync();
