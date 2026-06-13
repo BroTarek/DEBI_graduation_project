@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone - Home</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <span class="logo-icon">▶</span>
+            <h1>YouTube Clone</h1>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search">
+            <button>🔍</button>
+        </div>
+        <div class="user-actions">
+            <a href="upload.html" class="btn btn-upload">Upload Video</a>
+            <div class="avatar">U</div>
+        </div>
+    </header>
+    
+    <main class="content">
+        <div class="sidebar">
+            <a href="#" class="sidebar-item active">🏠 Home</a>
+            <a href="#" class="sidebar-item">🔥 Trending</a>
+            <a href="#" class="sidebar-item">📚 Library</a>
+        </div>
+        
+        <div class="video-grid" id="video-grid">
+            <!-- Videos will be populated here by JavaScript -->
+            <div class="loading">Loading videos...</div>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', fetchVideos);
+    </script>
+</body>
+</html>

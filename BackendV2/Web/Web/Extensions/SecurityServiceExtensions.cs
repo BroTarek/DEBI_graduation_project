@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -20,8 +20,8 @@ namespace YouTubeClone.Web.Extensions
                 {
                     policy.AllowAnyHeader()
                           .AllowAnyMethod()
-                          .AllowCredentials() // SignalR
-                          .WithOrigins(allowedOrigins);
+                          .SetIsOriginAllowed(_ => true) // SignalR with AllowCredentials requires specific origin or SetIsOriginAllowed
+                          .AllowCredentials(); // SignalR
                 });
             });
 

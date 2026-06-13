@@ -1,7 +1,8 @@
+using YouTubeClone.Shared.DTOs.Playlist;
 using YouTubeClone.Core.Services;
 using YouTubeClone.Presentation.Controllers;
 using YouTubeClone.Shared.Responses;
-using YouTubeClone.Shared.DTOs.Playlist;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -10,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace YouTubeClone.Presentation.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class PlaylistController : BaseController

@@ -16,6 +16,9 @@ namespace YouTubeClone.Domain.Aggregates.Playlists
         private readonly List<Video> _videos = new();
         public IReadOnlyList<Video> Videos => _videos.AsReadOnly();
 
+        // EF Core requires a parameterless constructor
+        protected Playlist() { }
+
         protected Playlist(PlaylistId id, string name, string description, string thumbnailUrl, Accessibility accessibility) : base(id)
         {
             Name = name;

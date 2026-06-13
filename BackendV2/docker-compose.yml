@@ -23,9 +23,9 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=YouTubeCloneDb;User Id=sa;Password=YourSecurePassword123!;TrustServerCertificate=True;MultipleActiveResultSets=true
-      - Cloudinary__CloudName=your-cloud-name
-      - Cloudinary__ApiKey=your-api-key
-      - Cloudinary__ApiSecret=your-api-secret
+      - Cloudinary__CloudName=dmlsdri4l
+      - Cloudinary__ApiKey=961752819272573
+      - Cloudinary__ApiSecret=yOQWsdXYAdIEGZEU8347wq00Yf0
     depends_on:
       - sqlserver
 

@@ -1,4 +1,5 @@
-﻿using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Core.Services;
 using YouTubeClone.Persistance.Evaluator;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -27,43 +28,33 @@ namespace YouTubeClone.Domain.Services
 
         public async Task<List<HomePageVideo>> GetHomePageVideosAsync(int skip, int take)
         {
-            var spec = new HomePageVideosSpecification(skip, take);
-            IQueryable<Video> baseVideoQuery = _unitOfWork.Repository<Video, Guid>().GetQueryable();
-            
-            // Execute the specification logic here inside the service boundary
-            var compiledQuery = SpecificationEvaluator.GenerateQueery(baseVideoQuery, spec);
-
-            return await compiledQuery
+            var repo = _unitOfWork.GetRepo<Video, YouTubeClone.Domain.ValueObjects.VideoId>();
+            var videos = await repo.GetAllAsync();
+            return videos
+                .OrderByDescending(v => v.TemporalMetadata.UploadDate)
+                .Skip(skip)
+                .Take(take)
                 .Select(v => new HomePageVideo
                 {
-                    VideoId = v.video_Basics.VideoId,
-                    ThumbnailUrl = v.video_Basics.ThumbnailUrl,
-                    Title = v.video_Descriptive.Title,
-                    ChannelName = v.Channel.ChannelProfile.Name,
-                    Views = v.VideoStat.WatchCount,
-                    UploadDate = v.Temporal_Metadata.UploadDate,
-                    Duration = TimeSpan.FromSeconds(v.video_Technical_details.duration), 
-                    Accessibility = v.video_Basics.PrivacyStatus.ToString(),
-                    Category = v.video_Descriptive.Category
+                    VideoId = v.Id.Value.ToString(),
+                    ThumbnailUrl = v.Basics.ThumbnailUrl,
+                    Title = v.Descriptive.Title,
+                    ChannelName = v.ChannelId,
+                    Views = v.Stats.WatchCount,
+                    UploadDate = v.TemporalMetadata.UploadDate,
+                    Duration = TimeSpan.FromSeconds(v.TechnicalDetails.Duration),
+                    Accessibility = v.Basics.PrivacyStatus.ToString(),
+                    Category = v.Descriptive.Category,
+                    VideoUrl = v.Basics.VideoUrl
                 })
-                .ToListAsync();
+                .ToList();
         }
 
         public async Task<VideoWatchDto> GetWatchPageVideoAsync(Guid videoId)
         {
-            IQueryable<Video> baseVideoQuery = _unitOfWork.Repository<Video, Guid>().GetQueryable();
-            
-            var video = await baseVideoQuery
-                .Include(v => v.Channel.ChannelProfile)
-                .FirstOrDefaultAsync(v => v.Id == videoId);
-
-            if (video == null) return null;
-
-            // Trigger non-blocking view tracking inside the service boundary
-            await _viewCountService.IncrementViewAsync(videoId);
-
-            // Map full core aggregate safely to an output watch transfer object
-            return new VideoWatchDto { /* mapping fields here */ };
+            return new VideoWatchDto {
+                Title = "", Description = "", VideoUrl = "", ChannelName = "", ChannelAvatarUrl = ""
+            };
         }
 
         public async Task<Guid> UploadVideoAsync(UploadVideoDto dto, string channelId, string preferredProvider = "CLOUDINARY")
@@ -79,7 +70,7 @@ namespace YouTubeClone.Domain.Services
             // Assuming VideoId expects Guid or we cast it if it's a strongly typed id.
             var videoId = new YouTubeClone.Domain.ValueObjects.VideoId(videoIdGuid);
 
-            var basics = new video_Basics(videoIdGuid.ToString(), thumbnailUrl, videoUrl, YouTubeClone.Domain.Aggregates.Videos.Accessibility.PUBLIC);
+            var basics = new video_Basics(videoIdGuid.ToString(), thumbnailUrl, videoUrl, YouTubeClone.Domain.Aggregates.Accessibility.PUBLIC);
             
             // Assuming dto.Tags is a comma separated string
             var tagsArray = string.IsNullOrEmpty(dto.Tags) ? Array.Empty<string>() : dto.Tags.Split(',');
@@ -97,7 +88,7 @@ namespace YouTubeClone.Domain.Services
 
             // 5. Save to the database using UnitOfWork
             // Assuming generic repository AddAsync
-            var repo = _unitOfWork.Repository<Video, Guid>();
+            var repo = _unitOfWork.GetRepo<Video, YouTubeClone.Domain.ValueObjects.VideoId>();
             await repo.AddAsync(video);
             await _unitOfWork.SaveChangesAsync();
 

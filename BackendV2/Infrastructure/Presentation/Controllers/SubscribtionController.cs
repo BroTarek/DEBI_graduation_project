@@ -9,7 +9,6 @@ using YouTubeClone.Shared.Responses;
 
 namespace YouTubeClone.Presentation.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     public class SubscribtionController : BaseController
     {

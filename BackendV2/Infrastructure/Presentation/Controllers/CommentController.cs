@@ -1,5 +1,5 @@
 using YouTubeClone.Core.Services;
-using YouTubeClone.Shared.DTOs.Comments;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace YouTubeClone.Presentation.Controllers
 {
-    [Authorize]
     public class CommentController : BaseController
     {
         private readonly ICommentService _commentService;

@@ -35,7 +35,6 @@ namespace YouTubeClone.Domain.Aggregates
     ACTION,
     THRILLER,
     DRAMA,
-    FAMILY,
-    DOCUMENTARY
+    FAMILY
     }
 }

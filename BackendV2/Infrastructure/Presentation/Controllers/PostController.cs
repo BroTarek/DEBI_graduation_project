@@ -7,7 +7,6 @@ using YouTubeClone.Shared.DTOs.Posts;
 
 namespace YouTubeClone.Presentation.Controllers
 {
-    [Authorize]
     [Route("api/channels/{channelId}/posts")]
     public class PostController : BaseController
     {

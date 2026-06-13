@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone - Upload</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">
+            <a href="index.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 5px;">
+                <span class="logo-icon">▶</span>
+                <h1>YouTube Clone</h1>
+            </a>
+        </div>
+    </header>
+    
+    <main class="upload-container">
+        <div class="upload-card">
+            <h2>Upload a Video</h2>
+            <form id="upload-form" class="upload-form">
+                <div class="form-group">
+                    <label for="videoFile">Select Video File *</label>
+                    <input type="file" id="videoFile" name="videoFile" accept="video/*" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="thumbnailFile">Select Thumbnail Image *</label>
+                    <input type="file" id="thumbnailFile" name="thumbnailFile" accept="image/*" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="My Awesome Video">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="4" placeholder="Tell viewers about your video"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category">
+                        <option value="Education">Education</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Gaming">Gaming</option>
+                        <option value="Music">Music</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="tags">Tags (comma separated)</label>
+                    <input type="text" id="tags" name="tags" placeholder="vlog, fun, coding">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="upload-btn">Upload Video</button>
+                    <div id="upload-status" class="status-message"></div>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        document.getElementById('upload-form').addEventListener('submit', handleUpload);
+    </script>
+</body>
+</html>

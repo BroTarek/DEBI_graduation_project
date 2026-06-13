@@ -22,6 +22,9 @@ namespace YouTubeClone.Domain.Aggregates.Channels
         private readonly List<ChannelPlaylist> _channelPlaylists = new();
         public IReadOnlyList<ChannelPlaylist> ChannelPlaylists => _channelPlaylists.AsReadOnly();
 
+        // EF Core requires a parameterless constructor
+        private Channel() { }
+
         public Channel(ChannelId id, User owner, ChannelProfile profile) : base(id)
         {
             Owner = owner;

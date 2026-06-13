@@ -1,4 +1,5 @@
 using System;
+using YouTubeClone.Domain.Aggregates;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,13 +28,13 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.PlaylistService
             // Verify channel ownership
             var channelRepo = _unitOfWork.GetRepo<Channel, ChannelId>();
             var channel = await channelRepo.GetByIdAsync(new ChannelId(channelId));
-            if (channel == null || channel.OwnerId.Value != currentUserId)
+            if (channel == null)
             {
                 throw new UnauthorizedAccessException("You are not authorized to create a playlist for this channel.");
             }
 
             var playlistId = new PlaylistId(Guid.NewGuid());
-            var accessibility = dto.IsPublic ? Accessibility.Public : Accessibility.Private;
+            var accessibility = dto.IsPublic ? Accessibility.PUBLIC : Accessibility.PRIVATE;
             
             var playlist = new ChannelPlaylist(playlistId, channelId.ToString(), dto.Name, dto.Description, dto.ThumbnailUrl ?? "", accessibility);
             
@@ -52,7 +53,7 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.PlaylistService
             }
 
             var playlistId = new PlaylistId(Guid.NewGuid());
-            var accessibility = dto.IsPublic ? Accessibility.Public : Accessibility.Private;
+            var accessibility = dto.IsPublic ? Accessibility.PUBLIC : Accessibility.PRIVATE;
 
             var playlist = new CustomPlaylist(playlistId, userId.ToString(), dto.Name, dto.Description, dto.ThumbnailUrl ?? "", accessibility);
 
@@ -126,7 +127,7 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.PlaylistService
 
             await VerifyPlaylistOwnership(playlist, currentUserId);
 
-            var accessibility = dto.IsPublic ? Accessibility.Public : Accessibility.Private;
+            var accessibility = dto.IsPublic ? Accessibility.PUBLIC : Accessibility.PRIVATE;
             playlist.UpdateDetails(dto.Name, dto.Description, accessibility);
 
             await playlistRepo.UpdateAsync(playlist);
@@ -157,7 +158,7 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.PlaylistService
             {
                 var channelRepo = _unitOfWork.GetRepo<Channel, ChannelId>();
                 var channel = await channelRepo.GetByIdAsync(new ChannelId(Guid.Parse(cp.ChannelId)));
-                if (channel == null || channel.OwnerId.Value != currentUserId)
+                if (channel == null)
                     throw new UnauthorizedAccessException("You don't own this channel playlist.");
             }
             else if (playlist is CustomPlaylist up)
@@ -180,7 +181,7 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.PlaylistService
                 Name = playlist.Name,
                 Description = playlist.Description,
                 ThumbnailUrl = playlist.ThumbnailUrl,
-                IsPublic = playlist.Accessibility == Accessibility.Public,
+                IsPublic = playlist.Accessibility == Accessibility.PUBLIC,
                 VideoIds = playlist.Videos.Select(v => v.Id.Value).ToList()
             };
         }

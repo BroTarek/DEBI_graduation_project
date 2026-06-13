@@ -12,6 +12,9 @@ namespace YouTubeClone.Domain.Aggregates.Videos
         public string Content { get; private set; }
         public Comment? ParentComment { get; private set; }
 
+        // EF Core requires a parameterless constructor
+        private Comment() { }
+
         public Comment(CommentId id, string commentId, string authorId, string videoId, string content, Comment? parentComment = null) : base(id)
         {
             CommentId = commentId;

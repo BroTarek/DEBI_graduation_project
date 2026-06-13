@@ -13,6 +13,9 @@ namespace YouTubeClone.Domain.Aggregates.Videos
         public float FrameRate { get; private set; }
         public int BitRate { get; private set; }
 
+        // EF Core requires a parameterless constructor
+        private video_Technical_details() { }
+
         public video_Technical_details(
             int duration,
             string resolution,
@@ -41,6 +44,9 @@ namespace YouTubeClone.Domain.Aggregates.Videos
         public string VideoUrl { get; private set; }
         public Accessibility PrivacyStatus { get; private set; }
 
+        // EF Core requires a parameterless constructor
+        private video_Basics() { }
+
         public video_Basics(string videoId, string thumbnailUrl, string videoUrl, Accessibility privacyStatus)
         {
             VideoId = videoId;
@@ -57,6 +63,9 @@ namespace YouTubeClone.Domain.Aggregates.Videos
         public string Category { get; private set; }
         public string[] Tags { get; private set; }
 
+        // EF Core requires a parameterless constructor
+        private video_Descriptive() { }
+
         public video_Descriptive(string title, string description, string category, string[] tags)
         {
             Title = title;
@@ -72,6 +81,9 @@ namespace YouTubeClone.Domain.Aggregates.Videos
         public DateTime UpateDate { get; private set; } // Matches the exact property name in the UML (upateDate)
         public string UploadStatus { get; private set; }
 
+        // EF Core requires a parameterless constructor
+        private Temporal_Metadata() { }
+
         public Temporal_Metadata(DateTime uploadDate, DateTime upateDate, string uploadStatus)
         {
             UploadDate = uploadDate;
@@ -85,6 +97,9 @@ namespace YouTubeClone.Domain.Aggregates.Videos
         public int WatchCount { get; private set; }
         public int LikesCount { get; private set; }
         public int DislikesCount { get; private set; }
+
+        // EF Core requires a parameterless constructor
+        private VideoStats() { }
 
         public VideoStats(int watchCount, int likesCount, int dislikesCount)
         {

@@ -1,16 +1,14 @@
-﻿
+
 using YouTubeClone.Persistance.Contexts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using YouTubeClone.Abstraction.Storage;
-using YouTubeClone.Persistance.Services.Storage;
 using YouTubeClone.Persistance.Services.Storage2;
 using Amazon.S3;
 using YouTubeClone.Domain.Contracts.InitializerDB;
 using YouTubeClone.Persistance.Implements.InitializerImplement;
 using YouTubeClone.Domain.Contracts.UOW;
-using Core.Domain.Contracts.Repos;
+using YouTubeClone.Domain.Contracts.Repos;
 using YouTubeClone.Persistance.Implements;
 using System;
 using System.Collections.Generic;
@@ -26,11 +24,7 @@ namespace YouTubeClone.Persistance.ProgramServices
             services.AddDbContext<YouTubeCloneDbContext>(options =>
                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
                
-            // Add Storage Services
-            services.AddScoped<ILocalStorageService, LocalStorageService>();
-            services.AddScoped<IS3StorageService, S3StorageService>();
-            services.AddScoped<ICloudinaryStorageService, CloudinaryStorageService>();
-            services.AddScoped<IMediaStorageService, MediaStorageService>();
+            // Add Storage Services (Replaced by Storage2 strategies)
 
             // Add IAmazonS3 Client (for S3 storage strategy)
             services.AddScoped<IAmazonS3>(sp => {

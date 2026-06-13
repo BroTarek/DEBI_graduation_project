@@ -1,4 +1,4 @@
-﻿using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Domain.Contracts.UOW;
 using YouTubeClone.Presentation.Controllers;
 using YouTubeClone.Shared.Responses;
 using Microsoft.AspNetCore.Authorization;
@@ -14,7 +14,6 @@ using YouTubeClone.Domain.Services;
 
 namespace YouTubeClone.Presentation.Controllers
 {
-    [Authorize]
     public class ChannelController : BaseController
     {
         private readonly IChannelService _channelService;

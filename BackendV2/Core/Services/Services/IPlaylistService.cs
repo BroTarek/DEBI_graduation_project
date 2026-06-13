@@ -1,3 +1,4 @@
+using YouTubeClone.Shared.DTOs.Playlist;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

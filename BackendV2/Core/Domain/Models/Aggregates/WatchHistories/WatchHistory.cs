@@ -14,6 +14,9 @@ namespace YouTubeClone.Domain.Aggregates.WatchHistories
         private readonly List<Video> _videos = new();
         public IReadOnlyList<Video> Videos => _videos.AsReadOnly();
 
+        // EF Core requires a parameterless constructor
+        private WatchHistory() { }
+
         public WatchHistory(WatchHistoryId id, User owner) : base(id)
         {
             Owner = owner;

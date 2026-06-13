@@ -13,6 +13,9 @@ namespace YouTubeClone.Domain.Aggregates.Subscriptions
         private readonly List<Channel> _channels = new();
         public IReadOnlyList<Channel> Channels => _channels.AsReadOnly();
 
+        // EF Core requires a parameterless constructor
+        private Subscriptions() { }
+
         public Subscriptions(SubscriptionId id, string ownerId) : base(id)
         {
             OwnerId = ownerId;

@@ -11,6 +11,9 @@ namespace YouTubeClone.Domain.Aggregates.Channels
         public string PostContent { get; private set; }
         public Accessibility Accessibility { get; private set; }
 
+        // EF Core requires a parameterless constructor
+        private Post() { }
+
         public Post(PostId id, string channelId, string postContent, Accessibility accessibility) : base(id)
         {
             ChannelId = channelId;

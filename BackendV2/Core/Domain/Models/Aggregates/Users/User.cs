@@ -15,11 +15,14 @@ namespace YouTubeClone.Domain.Aggregates.Users
         public UserProfileInfo ProfileInfo { get; private set; }
         public WatchHistory WatchHistory { get; private set; }
         public LikedVideosPlaylist LikedVideosPlaylist { get; private set; }
-        public Subscriptions Subscriptions { get; private set; }
+        public YouTubeClone.Domain.Aggregates.Subscriptions.Subscriptions Subscriptions { get; private set; }
         public Channel? Channel { get; private set; }
 
         private readonly List<CustomPlaylist> _customPlaylists = new();
         public IReadOnlyList<CustomPlaylist> CustomPlaylists => _customPlaylists.AsReadOnly();
+
+        // EF Core requires a parameterless constructor
+        private User() { }
 
         public User(
             UserId id,
@@ -27,7 +30,7 @@ namespace YouTubeClone.Domain.Aggregates.Users
             UserProfileInfo profileInfo,
             WatchHistory watchHistory,
             LikedVideosPlaylist likedVideosPlaylist,
-            Subscriptions subscriptions,
+            YouTubeClone.Domain.Aggregates.Subscriptions.Subscriptions subscriptions,
             Channel? channel = null) : base(id)
         {
             Credentials = credentials;

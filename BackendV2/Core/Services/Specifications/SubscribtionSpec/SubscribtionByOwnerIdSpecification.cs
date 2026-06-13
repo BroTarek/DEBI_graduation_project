@@ -3,7 +3,7 @@ using YouTubeClone.Domain.Aggregates.Subscriptions;
 
 namespace YouTubeClone.Core.Services.Specifications
 {
-    public class SubscribtionByOwnerIdSpecification : BaseSpecification<Subscriptions, SubscriptionId>
+    public class SubscribtionByOwnerIdSpecification : BaseSpecification<Subscriptions, YouTubeClone.Domain.ValueObjects.SubscriptionId>
     {
         public SubscribtionByOwnerIdSpecification(string ownerId) 
             : base(s => s.OwnerId == ownerId)

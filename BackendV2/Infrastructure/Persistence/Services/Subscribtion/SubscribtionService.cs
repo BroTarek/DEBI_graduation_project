@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using YouTubeClone.Core.Services;
 using YouTubeClone.Core.Services.Specifications;
 using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Domain.ValueObjects;
 using YouTubeClone.Domain.Aggregates.Subscriptions;
 using YouTubeClone.Domain.Aggregates.Channels;
 using YouTubeClone.Shared.Responses;
@@ -109,7 +110,7 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.Subscribtion
 
         public async Task<List<SubscribedChannelsPostsDTO>> GetAllSubscribedChannelsPosts(Guid UserID)
         {
-            var subRepo = _unitOfWork.GetRepo<Subscriptions, SubscriptionId>();
+            var subRepo = _unitOfWork.GetRepo<Subscriptions, YouTubeClone.Domain.ValueObjects.SubscriptionId>();
             var spec = new SubscribtionByOwnerIdSpecification(UserID.ToString());
             var userSub = await subRepo.GetByIdWithSpecificationsAsync(spec);
 

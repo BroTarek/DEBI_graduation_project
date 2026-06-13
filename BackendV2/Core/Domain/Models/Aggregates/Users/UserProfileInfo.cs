@@ -8,6 +8,9 @@ namespace YouTubeClone.Domain.Aggregates.Users
         public string ThemePreference { get; private set; }
         public string TopicsInterestedIn { get; private set; }
 
+        // EF Core requires a parameterless constructor
+        private UserProfileInfo() { }
+
         public UserProfileInfo(string userActualName, string bio, string avatar, string themePreference, string topicsInterestedIn)
         {
             UserActualName = userActualName;

@@ -9,7 +9,10 @@ namespace YouTubeClone.Domain.Aggregates.Channels
         public string Avatar { get; private set; }
         public string GreaterImg { get; private set; }
 
-        public ChannelProfile(int subscribersCount=0, string channelsDescription, string links, string name, string avatar, string greaterImg)
+        // EF Core requires a parameterless constructor
+        private ChannelProfile() { }
+
+        public ChannelProfile(string channelsDescription, string links, string name, string avatar, string greaterImg, int subscribersCount = 0)
         {
             SubscribersCount = subscribersCount;
             ChannelsDescription = channelsDescription;

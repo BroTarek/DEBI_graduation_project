@@ -17,6 +17,9 @@ namespace YouTubeClone.Domain.Aggregates.Videos
         private readonly List<Comment> _comments = new();
         public IReadOnlyList<Comment> Comments => _comments.AsReadOnly();
 
+        // EF Core requires a parameterless constructor
+        private Video() { }
+
         public Video(
             VideoId id,
             string channelId,
