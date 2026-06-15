@@ -1,9 +1,9 @@
 // Base URL for the API
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 // Hardcoded user IDs for the seeded users to bypass auth
 const TEST_USER_ID = '22222222-2222-2222-2222-222222222222';
-const TEST_CHANNEL_ID = 'TEST-CHANNEL-123'; // The backend expects a string, doesn't validate if it actually exists in our stubs
+const TEST_CHANNEL_ID = '22222222-2222-2222-2222-222222222223'; // Using seeded channel ID
 
 /**
  * Fetch and render videos on the home page
@@ -13,7 +13,7 @@ async function fetchVideos() {
     if (!grid) return;
 
     try {
-        const response = await fetch(`${API_BASE_URL}/HomePageVideos?skip=0&take=20`);
+        const response = await fetch(`${API_BASE_URL}/Video/homePageVideos?PageIndex=1&PageSize=20`);
         if (!response.ok) throw new Error('Failed to fetch videos');
         
         const data = await response.json();
@@ -81,7 +81,7 @@ async function handleUpload(event) {
         statusDiv.className = 'status-message status-loading';
         statusDiv.textContent = 'Uploading video and thumbnail to Cloudinary...';
 
-        const response = await fetch(`${API_BASE_URL}/upload?channelId=${TEST_CHANNEL_ID}`, {
+        const response = await fetch(`${API_BASE_URL}/Video/uploadVideo?channelId=${TEST_CHANNEL_ID}`, {
             method: 'POST',
             body: formData
         });

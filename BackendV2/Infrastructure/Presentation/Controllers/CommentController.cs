@@ -1,68 +1,72 @@
-using YouTubeClone.Core.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
+using YouTubeClone.Services;
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
+using YouTubeClone.Shared.Responses;
 
-namespace YouTubeClone.Presentation.Controllers
+namespace YouTubeClone.Controllers
 {
-    public class CommentController : BaseController
+    [ApiController]
+    [Route("api/[controller]")]
+    public class CommentController : ControllerBase
     {
-        private readonly ICommentService _commentService;
+        private readonly ICommunityInteractionService _interactionService;
+        public CommentController(ICommunityInteractionService interactionService) => _interactionService = interactionService;
 
-        public CommentController(ICommentService commentService)
+        [HttpPost("createCommentOnVideo/{videoId}")]
+        public async Task<ActionResult<ApiResponse<CommentFeedDTO>>> CreateCommentOnVideo(string videoId, [FromBody] string content)
         {
-            _commentService = commentService;
+            var mockUser = "11111111-1111-1111-1111-111111111111";
+            var res = await _interactionService.CreateCommentAsync(mockUser, videoId, "video", content);
+            return Ok(new ApiResponse<CommentFeedDTO>(res, "Comment dropped on publication successfully."));
         }
 
-        [HttpPost("video")]
-        public async Task<IActionResult> CreateCommentOnVideo([FromBody] CreateVideoCommentDto dto)
+        [HttpPost("createCommentOnPost/{postId}")]
+        public async Task<ActionResult<ApiResponse<CommentFeedDTO>>> CreateCommentOnPost(string postId, [FromBody] string content)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var commentId = await _commentService.CreateCommentOnVideo(dto);
-            return Ok(new { Id = commentId });
+            var mockUser = "11111111-1111-1111-1111-111111111111";
+            var res = await _interactionService.CreateCommentAsync(mockUser, postId, "post", content);
+            return Ok(new ApiResponse<CommentFeedDTO>(res, "Comment dropped on community message thread."));
         }
 
-        [HttpPost("post")]
-        public async Task<IActionResult> CreateCommentOnPost([FromBody] CreatePostCommentDto dto)
+        [HttpPost("createReplyOnComment/{commentId}")]
+        public async Task<ActionResult<ApiResponse<CommentFeedDTO>>> CreateReplyOnComment(string commentId, [FromQuery] string targetId, [FromQuery] string targetType, [FromBody] string content)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var commentId = await _commentService.CreateCommentOnPost(dto);
-            return Ok(new { Id = commentId });
+            var mockUser = "11111111-1111-1111-1111-111111111111";
+            var res = await _interactionService.CreateCommentAsync(mockUser, targetId, targetType, content, parentCommentId: commentId);
+            return Ok(new ApiResponse<CommentFeedDTO>(res, "Threaded reply logged."));
         }
 
-        [HttpGet("video/{videoId}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetCommentsOnVideo(Guid videoId)
+        [HttpPut("updateComment/{id}")]
+        public async Task<ActionResult<ApiResponse<object>>> UpdateComment(string id, [FromBody] string content)
         {
-            var comments = await _commentService.GetCommentsOnVideo(videoId);
-            return Ok(comments);
+            var ok = await _interactionService.UpdateCommentAsync(id, content);
+            if (!ok) return BadRequest(new ApiResponse<object>("Comment update routine failed.", 400));
+            return Ok(new ApiResponse<object>(new { TargetCommentId = id }, "Comment message updated."));
         }
 
-        [HttpGet("post/{postId}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetCommentsOnPost(Guid postId)
+        [HttpDelete("deleteComment/{id}")]
+        public async Task<ActionResult<ApiResponse<object>>> DeleteComment(string id)
         {
-            var comments = await _commentService.GetCommentsOnPost(postId);
-            return Ok(comments);
+            var ok = await _interactionService.DeleteCommentAsync(id);
+            if (!ok) return NotFound(new ApiResponse<object>("Target comment non-existent.", 404));
+            return Ok(new ApiResponse<object>(new { PurgedCommentId = id }, "Comment thread node dropped."));
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteComment(Guid id)
+        [HttpGet("getAllCommentsOnPosts/{postId}")]
+        public async Task<ActionResult<ApiResponse<Pagination<CommentFeedDTO>>>> GetAllCommentsOnPosts(string postId, [FromQuery] QueryParams queryParams)
         {
-            await _commentService.DeleteComment(id);
-            return NoContent();
+            var res = await _interactionService.GetContentCommentsAsync(postId, "post", queryParams);
+            return Ok(new ApiResponse<Pagination<CommentFeedDTO>>(res, "Post comments gathered."));
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateComment(Guid id, [FromBody] UpdateCommentDto dto)
+        [HttpGet("getAllCommentsOnVideos/{videoId}")]
+        public async Task<ActionResult<ApiResponse<Pagination<CommentFeedDTO>>>> GetAllCommentsOnVideos(string videoId, [FromQuery] QueryParams queryParams)
         {
-            if (id != dto.Id) return BadRequest("Id mismatch.");
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            await _commentService.UpdateComment(dto);
-            return NoContent();
+            var res = await _interactionService.GetContentCommentsAsync(videoId, "video", queryParams);
+            return Ok(new ApiResponse<Pagination<CommentFeedDTO>>(res, "Video publication workspace comments feed loaded."));
         }
     }
 }

@@ -1,20 +1,17 @@
-using YouTubeClone.Domain.Contracts.UOW;
-using YouTubeClone.Presentation.Controllers;
-using YouTubeClone.Shared.Responses;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using YouTubeClone.Domain.Aggregates.Channels;
-using YouTubeClone.Domain.Aggregates.Subscriptions;
-using YouTubeClone.Domain.ValueObjects;
-using YouTubeClone.Domain.Services;
+using YouTubeClone.Services;
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
+using YouTubeClone.Shared.Responses;
 
-namespace YouTubeClone.Presentation.Controllers
+namespace YouTubeClone.Controllers
 {
-    public class ChannelController : BaseController
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ChannelController : ControllerBase
     {
         private readonly IChannelService _channelService;
 
@@ -23,40 +20,52 @@ namespace YouTubeClone.Presentation.Controllers
             _channelService = channelService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> CreateChannel([FromBody] CreateChannelDto dto)
+        [HttpPost("createChannel")]
+        public async Task<ActionResult<ApiResponse<ChannelProfileDTO>>> CreateChannel([FromBody] CreateChannelDTO dto)
         {
-            // Placeholder: Safely attempt to retrieve user ID, fallback for non-compiling scenarios
-            var userIdStr = GetUserId() ?? Guid.NewGuid().ToString();
-            if (!Guid.TryParse(userIdStr, out var userIdGuid))
+            var mockCurrentUserId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+
+            var profile = await _channelService.CreateChannelAsync(mockCurrentUserId, dto);
+            
+            if (profile == null)
             {
-                return Unauthorized(new ApiResponse<string>("Unauthorized user.", 401));
+                return BadRequest(new ApiResponse<ChannelProfileDTO>("User already registers an active channel or account mapping is corrupted.", 400));
             }
 
-            var channelId = await _channelService.CreateChannelAsync(dto, userIdGuid);
-
-            return Ok(new ApiResponse<Guid>(channelId, "Channel created successfully."));
+            return Ok(new ApiResponse<ChannelProfileDTO>(profile, "Channel asset instantiated safely under owner domain."));
         }
 
-        [HttpGet("{id}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetChannelAbout(Guid id)
+        [HttpGet("getChannelProfile/{channelId}")]
+        public async Task<ActionResult<ApiResponse<ChannelProfileDTO>>> GetChannelProfile(Guid channelId)
         {
-            var about = await _channelService.GetChannelAboutAsync(id);
-            if (about == null)
+            var profile = await _channelService.GetChannelProfileAsync(channelId);
+            
+            if (profile == null)
             {
-                return NotFound(new ApiResponse<string>("Channel not found.", 404));
+                return NotFound(new ApiResponse<ChannelProfileDTO>("Target channel metadata workspace not located.", 404));
             }
 
-            return Ok(new ApiResponse<ChannelAboutDto>(about, "Channel retrieved successfully."));
+            return Ok(new ApiResponse<ChannelProfileDTO>(profile, "Channel profile details extracted cleanly."));
         }
 
-        [HttpGet("{id}/videos")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetChannelVideos(Guid id)
+        [HttpGet("getChannelVideos/{channelId}")]
+        public async Task<ActionResult<ApiResponse<Pagination<ChannelVideoItemDTO>>>> GetChannelVideos(string channelId, [FromQuery] QueryParams queryParams)
         {
-            var videos = await _channelService.GetChannelVideosAsync(id);
-            return Ok(new ApiResponse<IReadOnlyList<ChannelVideoDto>>(videos, "Channel videos retrieved successfully."));
+            var paginatedVideos = await _channelService.GetChannelVideosAsync(channelId, queryParams);
+            return Ok(new ApiResponse<Pagination<ChannelVideoItemDTO>>(paginatedVideos, "Channel uploaded publications page compiled successfully."));
+        }
+
+        [HttpDelete("removeChannel/{channelId}")]
+        public async Task<ActionResult<ApiResponse<object>>> RemoveChannel(Guid channelId)
+        {
+            var success = await _channelService.RemoveChannelAsync(channelId);
+            
+            if (!success)
+            {
+                return NotFound(new ApiResponse<object>("Target channel record could not be isolated for processing lifecycle completion.", 404));
+            }
+
+            return Ok(new ApiResponse<object>(new { RemovedChannelId = channelId }, "Channel registry and dependent data trees pruned successfully."));
         }
     }
 }

@@ -1,0 +1,29 @@
+namespace YouTubeClone.Domain.Enums
+{
+    public enum VideoTag
+    {
+        GAMING,
+        NEWS,
+        VLOGS,
+        EDUCATION,
+        ENTERTAINMENT,
+        SPORTS,
+        MUSIC,
+        TECH,
+        BEAUTY,
+        FASHION,
+        HEALTH,
+        FOOD,
+        TRAVEL,
+        COMEDY,
+        DOCUMENTARY,
+        ANIMATION,
+        HORROR,
+        SCIFI,
+        ROMANCE,
+        ACTION,
+        THRILLER,
+        DRAMA,
+        FAMILY
+    }
+}

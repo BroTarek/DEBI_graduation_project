@@ -1,13 +1,16 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
 
-namespace YouTubeClone.Domain.Services
+namespace YouTubeClone.Services
 {
     public interface IChannelService
     {
-        Task<Guid> CreateChannelAsync(CreateChannelDto dto, Guid ownerId);
-        Task<ChannelAboutDto> GetChannelAboutAsync(Guid channelId);
-        Task<IReadOnlyList<ChannelVideoDto>> GetChannelVideosAsync(Guid channelId);
+        Task<ChannelProfileDTO?> CreateChannelAsync(Guid userId, CreateChannelDTO dto);
+        Task<ChannelProfileDTO?> GetChannelProfileAsync(Guid channelId);
+        Task<Pagination<ChannelVideoItemDTO>> GetChannelVideosAsync(string channelId, QueryParams queryParams);
+        Task<bool> RemoveChannelAsync(Guid channelId);
     }
 }

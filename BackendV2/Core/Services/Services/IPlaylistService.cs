@@ -1,20 +1,18 @@
-using YouTubeClone.Shared.DTOs.Playlist;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using YouTubeClone.Shared.DTOs.Playlist; // Assuming this namespace exists based on DTO metadata
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
 
-namespace YouTubeClone.Core.Services
+namespace YouTubeClone.Services
 {
-    public interface IPlaylistService 
+    public interface IPlaylistService
     {
-        Task<Guid> CreateChannelPlaylist(Guid channelId, CreatePlaylistDto dto, Guid currentUserId);
-        Task<Guid> CreateCustomPlaylist(Guid userId, CreatePlaylistDto dto, Guid currentUserId);
-        Task DeletePlaylist(Guid playlistId, Guid currentUserId);
-        Task AddVideoToPlaylist(Guid videoId, Guid playlistId, Guid currentUserId);
-        Task RemoveVideoFromPlaylist(Guid videoId, Guid playlistId, Guid currentUserId);
-        Task UpdatePlaylist(Guid playlistId, CreatePlaylistDto dto, Guid currentUserId);
-        Task<List<PlaylistDto>> GetAllPlaylistsOfChannel(Guid channelId);
-        Task<List<PlaylistDto>> GetAllPlaylistsCreatedByUser(Guid userId);
+        Task<bool> CreatePlaylistAsync(Guid targetId, string label, string name, string description);
+        Task<bool> AddVideoToPlaylistAsync(Guid playlistId, string videoId);
+        Task<bool> RemoveVideoFromPlaylistAsync(Guid playlistId, string videoId);
+        Task<bool> ClearPlaylistAsync(Guid playlistId);
+        Task<PlaylistVideosResultDTO?> GetVideosInPlaylistAsync(Guid playlistId, QueryParams queryParams);
+        Task<IEnumerable<CompactPlaylistLookupDTO>> GetAllPlaylistsAsync(string ownerId, string label);
     }
 }

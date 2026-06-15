@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,6 +21,7 @@ namespace YouTubeClone.Persistance.Services.Storage2
                 configuration["Cloudinary:ApiSecret"]
             );
             _cloudinary = new Cloudinary(account);
+            _cloudinary.Api.Timeout = int.MaxValue; // Increase from default 100s to support large video uploads
         }
 
         public async Task<string> UploadAsync(IFormFile file, string folderName)
@@ -39,7 +40,7 @@ namespace YouTubeClone.Persistance.Services.Storage2
                 Folder = folderName
             };
 
-            var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+            var uploadResult = await _cloudinary.UploadLargeAsync(uploadParams, bufferSize: 20000000); // 20 MB chunks
 
             if (uploadResult.Error != null)
                 throw new Exception($"Cloudinary upload failed: {uploadResult.Error.Message}");

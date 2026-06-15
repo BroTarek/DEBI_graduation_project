@@ -1,9 +1,10 @@
+using System;
 using System.Threading.Tasks;
 
 namespace YouTubeClone.Core.Services
 {
     public interface IViewCountService
     {
-        Task IncrementViewCountAsync(System.Guid videoId);
+        Task IncrementViewCountAsync(Guid videoId);
     }
 }

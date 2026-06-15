@@ -1,98 +1,146 @@
-using YouTubeClone.Domain.Contracts.UOW;
-using YouTubeClone.Core.Services;
-using YouTubeClone.Persistance.Evaluator;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using YouTubeClone.Domain.Aggregates.Videos;
+using YouTubeClone.Domain.Contracts.UOW;
+using YouTubeClone.Domain.Entities.Videos;
+using YouTubeClone.Domain.Entities.WatchHistories;
 using YouTubeClone.Services.Specifications;
-
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
 using YouTubeClone.Persistance.Services.Storage2;
 
-namespace YouTubeClone.Domain.Services
+namespace YouTubeClone.Services
 {
     public class VideoService : IVideoService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly IViewCountService _viewCountService;
         private readonly UploadContext _uploadContext;
 
-        public VideoService(IUnitOfWork unitOfWork, IViewCountService viewCountService, UploadContext uploadContext)
+        public VideoService(IUnitOfWork unitOfWork, UploadContext uploadContext)
         {
             _unitOfWork = unitOfWork;
-            _viewCountService = viewCountService;
             _uploadContext = uploadContext;
-        }
-
-        public async Task<List<HomePageVideo>> GetHomePageVideosAsync(int skip, int take)
-        {
-            var repo = _unitOfWork.GetRepo<Video, YouTubeClone.Domain.ValueObjects.VideoId>();
-            var videos = await repo.GetAllAsync();
-            return videos
-                .OrderByDescending(v => v.TemporalMetadata.UploadDate)
-                .Skip(skip)
-                .Take(take)
-                .Select(v => new HomePageVideo
-                {
-                    VideoId = v.Id.Value.ToString(),
-                    ThumbnailUrl = v.Basics.ThumbnailUrl,
-                    Title = v.Descriptive.Title,
-                    ChannelName = v.ChannelId,
-                    Views = v.Stats.WatchCount,
-                    UploadDate = v.TemporalMetadata.UploadDate,
-                    Duration = TimeSpan.FromSeconds(v.TechnicalDetails.Duration),
-                    Accessibility = v.Basics.PrivacyStatus.ToString(),
-                    Category = v.Descriptive.Category,
-                    VideoUrl = v.Basics.VideoUrl
-                })
-                .ToList();
-        }
-
-        public async Task<VideoWatchDto> GetWatchPageVideoAsync(Guid videoId)
-        {
-            return new VideoWatchDto {
-                Title = "", Description = "", VideoUrl = "", ChannelName = "", ChannelAvatarUrl = ""
-            };
         }
 
         public async Task<Guid> UploadVideoAsync(UploadVideoDto dto, string channelId, string preferredProvider = "CLOUDINARY")
         {
-            // 1. Upload the video to the cloud via context
             var videoUrl = await _uploadContext.UploadVideoAsync(dto.VideoFile, preferredProvider);
-
-            // 2. Upload the thumbnail locally to wwwroot/uploads/thumbnails
             var thumbnailUrl = await _uploadContext.UploadImageAsync(dto.ThumbnailFile, "thumbnails");
 
-            // 3. Construct Aggregate
             var videoIdGuid = Guid.NewGuid();
-            // Assuming VideoId expects Guid or we cast it if it's a strongly typed id.
-            var videoId = new YouTubeClone.Domain.ValueObjects.VideoId(videoIdGuid);
-
-            var basics = new video_Basics(videoIdGuid.ToString(), thumbnailUrl, videoUrl, YouTubeClone.Domain.Aggregates.Accessibility.PUBLIC);
+            var basics = new VideoBasics(videoIdGuid, thumbnailUrl, videoUrl, YouTubeClone.Domain.Enums.Accessibility.PUBLIC);
             
-            // Assuming dto.Tags is a comma separated string
             var tagsArray = string.IsNullOrEmpty(dto.Tags) ? Array.Empty<string>() : dto.Tags.Split(',');
-            var descriptive = new video_Descriptive(dto.Title, dto.Description, dto.Category, tagsArray);
+            var descriptive = new VideoDescriptive(dto.Title, dto.Description, dto.Category, tagsArray);
             
-            // Technical details defaults/estimates
             long fileSize = dto.VideoFile?.Length ?? 0;
-            var technical = new video_Technical_details(dto.DurationSeconds, "1080p", fileSize, "mp4", "h264", "aac", 30f, 5000);
+            var technical = new VideoTechnicalDetails(dto.DurationSeconds, "1080p", fileSize, "mp4", "h264", "aac", 30f, 5000);
             
-            var temporal = new Temporal_Metadata(DateTime.UtcNow, DateTime.UtcNow, "Uploaded");
+            var temporal = new TemporalMetadata(DateTime.UtcNow, DateTime.UtcNow, "Uploaded");
             var stats = new VideoStats(0, 0, 0);
 
-            // 4. Create the aggregate
-            var video = new Video(videoId, channelId, basics, descriptive, technical, temporal, stats);
+            var video = new Video(videoIdGuid, Guid.Parse(channelId), basics, descriptive, technical, temporal, stats);
 
-            // 5. Save to the database using UnitOfWork
-            // Assuming generic repository AddAsync
-            var repo = _unitOfWork.GetRepo<Video, YouTubeClone.Domain.ValueObjects.VideoId>();
+            var repo = _unitOfWork.GetRepo<Video, Guid>();
             await repo.AddAsync(video);
             await _unitOfWork.SaveChangesAsync();
 
             return videoIdGuid;
+        }
+
+        public async Task<Pagination<HomePageVideoDTO>> GetHomePageVideosAsync(QueryParams queryParams)
+        {
+            var videoRepo = _unitOfWork.GetRepo<Video, Guid>();
+            
+            var countSpec = new VideoWithDetailsSpecification(queryParams); 
+            int totalCount = await videoRepo.CountAsync(countSpec);
+
+            var dataSpec = new VideoWithDetailsSpecification(queryParams);
+            var videos = await videoRepo.GetAllWithSpecificationAsync(dataSpec);
+
+            var videoDtos = videos.Select(v => new HomePageVideoDTO
+            {
+                VideoId = v.video_Basics.VideoId.ToString(),
+                ThumbnailUrl = v.video_Basics.ThumbnailUrl,
+                VideoLength = v.video_Technical_details.duration,
+                VideoTitle = v.video_Descriptive.Title,
+                ViewCount = v.VideoStats.watchCount,
+                ChannelAvatar = v.Channel?.ChannelProfile?.avatar ?? string.Empty,
+                ChannelName = v.Channel?.ChannelProfile?.name ?? string.Empty
+            });
+
+            return new Pagination<HomePageVideoDTO>(queryParams.PageIndex, queryParams.PageSize, totalCount, videoDtos);
+        }
+
+        public async Task<WatchVideoDetailDTO?> WatchVideoAsync(Guid videoId, Guid userId)
+        {
+            var videoRepo = _unitOfWork.GetRepo<Video, Guid>();
+            
+            var spec = new VideoWithDetailsSpecification(videoId);
+            var video = await videoRepo.GetByIdWithSpecificationsAsync(spec);
+
+            if (video == null) return null;
+
+            video.VideoStats.watchCount++;
+            await videoRepo.UpdateAsync(video);
+
+            var historyRepo = _unitOfWork.GetRepo<WatchHistory, Guid>();
+            var historySpec = new WatchHistorySpecification(userId);
+            var userHistory = await historyRepo.GetByIdWithSpecificationsAsync(historySpec);
+
+            if (userHistory != null)
+            {
+                userHistory.videos ??= new List<Video>();
+                if (!userHistory.videos.Any(v => v.video_Basics.VideoId == videoId))
+                {
+                    userHistory.videos.Add(video);
+                    await historyRepo.UpdateAsync(userHistory);
+                }
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+
+            var dto = new WatchVideoDetailDTO
+            {
+                VideoId = video.video_Basics.VideoId.ToString(),
+                VideoUrl = video.video_Basics.videoUrl,
+                Title = video.video_Descriptive.Title,
+                Description = video.video_Descriptive.Description,
+                Category = video.video_Descriptive.Category,
+                Tags = video.video_Descriptive.Tags?.ToList() ?? new List<string>(),
+                
+                WatchCount = video.VideoStats.watchCount,
+                LikesCount = video.VideoStats.likesCount,
+                DislikesCount = video.VideoStats.dislikesCount,
+
+                ChannelId = video.channelId.ToString(),
+                ChannelName = video.Channel?.ChannelProfile?.name ?? string.Empty,
+                ChannelAvatar = video.Channel?.ChannelProfile?.avatar ?? string.Empty
+            };
+
+            if (video.comments != null && video.comments.Any())
+            {
+                var allCommentDtos = video.comments.Select(c => new VideoCommentDTO
+                {
+                    CommentId = c.Id.ToString(),
+                    AuthorId = c.AuthorId,
+                    Content = c.Content,
+                    ParentCommentId = c.ParentCommentId?.ToString()
+                }).ToList();
+
+                var lookup = allCommentDtos.ToLookup(c => c.ParentCommentId);
+                
+                dto.Comments = lookup[null].ToList();
+
+                foreach (var comment in allCommentDtos)
+                {
+                    comment.Replies = lookup[comment.CommentId].ToList();
+                }
+            }
+
+            return dto;
         }
     }
 }

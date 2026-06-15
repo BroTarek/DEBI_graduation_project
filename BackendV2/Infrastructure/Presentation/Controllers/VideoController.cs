@@ -1,60 +1,52 @@
-﻿using YouTubeClone.Presentation.Controllers;
-using YouTubeClone.Shared.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using YouTubeClone.Domain.Services;
+using YouTubeClone.Services;
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
+using YouTubeClone.Shared.Responses;
 
-using YouTubeClone.Shared.DTOs.WatchHistories;
-
-namespace YouTubeClone.Presentation.Controllers
+namespace YouTubeClone.Controllers
 {
-    public class VideoController : BaseController
+    [ApiController]
+    [Route("api/[controller]")]
+    public class VideoController : ControllerBase
     {
         private readonly IVideoService _videoService;
-        private readonly IWatchHistoryService _watchHistoryService;
 
-        // Controller only depends on the service contract interface
-        public VideoController(IVideoService videoService, IWatchHistoryService watchHistoryService)
+        public VideoController(IVideoService videoService)
         {
             _videoService = videoService;
-            _watchHistoryService = watchHistoryService;
         }
 
-        [HttpGet("/HomePageVideos")]
-        public async Task<IActionResult> GetVideos([FromQuery] int skip = 0, [FromQuery] int take = 10)
+        [HttpGet("homePageVideos")]
+        public async Task<ActionResult<ApiResponse<Pagination<HomePageVideoDTO>>>> GetHomePageVideos([FromQuery] QueryParams queryParams)
         {
-            var homePageVideos = await _videoService.GetHomePageVideosAsync(skip, take);
-            return Ok(new ApiResponse<List<HomePageVideo>>(homePageVideos));
+            var result = await _videoService.GetHomePageVideosAsync(queryParams);
+            return Ok(new ApiResponse<Pagination<HomePageVideoDTO>>(result, "Home page videos loaded successfully."));
         }
 
-        [HttpGet("/watch")]
-        public async Task<IActionResult> GetVideo([FromQuery] Guid videoId, [FromBody] WatchHistoryRequestDto request = null)
+        [HttpPost("watchVideo/{videoId}")]
+        public async Task<ActionResult<ApiResponse<WatchVideoDetailDTO>>> WatchVideo(Guid videoId)
         {
-            var videoWatchData = await _videoService.GetWatchPageVideoAsync(videoId);
+            var mockCurrentUserId = Guid.Parse("22222222-2222-2222-2222-222222222222"); 
             
-            if (request != null && request.UserId != Guid.Empty)
+            var videoDetails = await _videoService.WatchVideoAsync(videoId, mockCurrentUserId);
+            
+            if (videoDetails == null)
             {
-                await _watchHistoryService.AddToWatchHistoryAsync(videoId, request.UserId);
+                return NotFound(new ApiResponse<WatchVideoDetailDTO>("Requested video could not be found.", 404));
             }
 
-            if (videoWatchData == null) return NotFound();
-
-            return Ok(new ApiResponse<VideoWatchDto>(videoWatchData));
+            return Ok(new ApiResponse<WatchVideoDetailDTO>(videoDetails, "Video metadata package compiled successfully."));
         }
 
-        [HttpPost("/upload")]
-        public async Task<IActionResult> UploadVideo([FromForm] UploadVideoDto dto, [FromQuery] string channelId)
+        [HttpPost("uploadVideo")]
+        public async Task<ActionResult<ApiResponse<Guid>>> UploadVideo([FromForm] UploadVideoDto dto, [FromQuery] string channelId)
         {
-            if (string.IsNullOrEmpty(channelId))
-            {
-                return BadRequest(new ApiResponse<string>("Channel ID is required."));
-            }
-
-            var videoId = await _videoService.UploadVideoAsync(dto, channelId);
-
-            return Ok(new ApiResponse<Guid>(videoId, "Video uploaded successfully."));
+            var res = await _videoService.UploadVideoAsync(dto, channelId);
+            return Ok(new ApiResponse<Guid>(res, "Video uploaded successfully."));
         }
     }
 }

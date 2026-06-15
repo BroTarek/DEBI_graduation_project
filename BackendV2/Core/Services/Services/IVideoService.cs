@@ -1,13 +1,15 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
 
-namespace YouTubeClone.Domain.Services
+namespace YouTubeClone.Services
 {
     public interface IVideoService
     {
-        Task<List<HomePageVideo>> GetHomePageVideosAsync(int skip, int take);
-        Task<VideoWatchDto> GetWatchPageVideoAsync(Guid videoId);
         Task<Guid> UploadVideoAsync(UploadVideoDto dto, string channelId, string preferredProvider = "CLOUDINARY");
+        Task<Pagination<HomePageVideoDTO>> GetHomePageVideosAsync(QueryParams queryParams);
+        Task<WatchVideoDetailDTO?> WatchVideoAsync(Guid videoId, Guid userId);
     }
 }

@@ -2,135 +2,118 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using YouTubeClone.Core.Services;
-using YouTubeClone.Core.Services.Specifications;
 using YouTubeClone.Domain.Contracts.UOW;
-using YouTubeClone.Domain.ValueObjects;
-using YouTubeClone.Domain.Aggregates.Subscriptions;
-using YouTubeClone.Domain.Aggregates.Channels;
-using YouTubeClone.Shared.Responses;
+using YouTubeClone.Domain.Entities.Channels;
+using YouTubeClone.Domain.Entities.Videos;
+using YouTubeClone.Domain.Entities.Subscriptions;
+using YouTubeClone.Services.Specifications;
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
 
-namespace YouTubeClone.Infrastructure.Persistence.Services.Subscribtion
+namespace YouTubeClone.Services
 {
-    public class SubscribtionService : ISubscribtionService
+    public class SubscriptionService : ISubscriptionService
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public SubscribtionService(IUnitOfWork unitOfWork)
+        public SubscriptionService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        public async Task AddToSubscribtions(Guid ChannelID, Guid UserID)
+        public async Task<Pagination<SubscribedChannelsDTO>> GetSubscribedChannelsAsync(QueryParams queryParams, Guid userId)
         {
-            var channelRepo = _unitOfWork.GetRepo<Channel, ChannelId>();
-            var channel = await channelRepo.GetByIdAsync(new ChannelId(ChannelID));
-            if (channel == null) throw new Exception("Channel not found");
+            var subRepo = _unitOfWork.GetRepo<Subscription, Guid>();
+            
+            var specForCount = new SubscriptionSpecification(queryParams, userId);
+            int totalCount = await subRepo.CountAsync(specForCount);
 
-            var subRepo = _unitOfWork.GetRepo<Subscriptions, SubscriptionId>();
-            var spec = new SubscribtionByOwnerIdSpecification(UserID.ToString());
-            var userSub = await subRepo.GetByIdWithSpecificationsAsync(spec);
+            var specForData = new SubscriptionSpecification(queryParams, userId);
+            var subscriptions = await subRepo.GetAllWithSpecificationAsync(specForData);
 
-            if (userSub == null)
+            var dtos = subscriptions.Select(s => new SubscribedChannelsDTO
             {
-                userSub = new Subscriptions(new SubscriptionId(Guid.NewGuid()), UserID.ToString());
-                userSub.TrackChannel(channel);
-                await subRepo.AddAsync(userSub);
+                ChannelId = s.ChannelId.ToString(),
+                ChannelName = s.Channel?.ChannelProfile?.name ?? string.Empty,
+                ChannelAvatar = s.Channel?.ChannelProfile?.avatar ?? string.Empty,
+                SubscribersCount = s.Channel?.ChannelProfile?.subscribersCount ?? 0
+            });
+
+            return new Pagination<SubscribedChannelsDTO>(queryParams.PageIndex, queryParams.PageSize, totalCount, dtos);
+        }
+
+        public async Task<Pagination<SubscribedChannelsVideosDTO>> GetSubscriptionFeedVideosAsync(QueryParams queryParams, Guid userId)
+        {
+            var subRepo = _unitOfWork.GetRepo<Subscription, Guid>();
+            var videoRepo = _unitOfWork.GetRepo<Video, Guid>();
+
+            var cleanSubCheckSpec = new SubscriptionSpecification(new QueryParams { PageSize = 1000 }, userId);
+            var userSubs = await subRepo.GetAllWithSpecificationAsync(cleanSubCheckSpec);
+            var followedChannelIds = userSubs.Select(s => s.ChannelId).ToList();
+
+            if (!followedChannelIds.Any())
+            {
+                return new Pagination<SubscribedChannelsVideosDTO>(queryParams.PageIndex, queryParams.PageSize, 0, Enumerable.Empty<SubscribedChannelsVideosDTO>());
+            }
+
+            var videoCountSpec = new SubscribedChannelsVideosSpecification(queryParams, followedChannelIds);
+            int totalCount = await videoRepo.CountAsync(videoCountSpec);
+
+            var videoDataSpec = new SubscribedChannelsVideosSpecification(queryParams, followedChannelIds);
+            var videos = await videoRepo.GetAllWithSpecificationAsync(videoDataSpec);
+
+            var dtos = videos.Select(v => new SubscribedChannelsVideosDTO
+            {
+                VideoId = v.video_Basics.VideoId.ToString(),
+                Title = v.video_Descriptive.Title,
+                ThumbnailUrl = v.video_Basics.ThumbnailUrl,
+                VideoUrl = v.video_Basics.videoUrl,
+                Duration = v.video_Technical_details.duration,
+                WatchCount = v.VideoStats.watchCount,
+                ChannelName = v.Channel?.ChannelProfile?.name ?? string.Empty,
+                ChannelAvatar = v.Channel?.ChannelProfile?.avatar ?? string.Empty
+            });
+
+            return new Pagination<SubscribedChannelsVideosDTO>(queryParams.PageIndex, queryParams.PageSize, totalCount, dtos);
+        }
+
+        public async Task<bool> ToggleSubscriptionAsync(Guid userId, string channelId)
+        {
+            var subRepo = _unitOfWork.GetRepo<Subscription, Guid>();
+            var channelRepo = _unitOfWork.GetRepo<Channel, Guid>();
+
+            var targetChannel = await channelRepo.GetByIdAsync(Guid.Parse(channelId));
+            if (targetChannel == null) return false;
+
+            var checkSpec = new SubscriptionSpecification(userId, Guid.Parse(channelId));
+            var existingSub = await subRepo.GetByIdWithSpecificationsAsync(checkSpec);
+
+            bool isSubscribedNow;
+
+            if (existingSub != null)
+            {
+                await subRepo.DeleteAsync(existingSub);
+                targetChannel.ChannelProfile.subscribersCount = Math.Max(0, targetChannel.ChannelProfile.subscribersCount - 1);
+                isSubscribedNow = false;
             }
             else
             {
-                if (!userSub.Channels.Any(c => c.Id.Value == ChannelID))
+                var newSub = new Subscription
                 {
-                    userSub.TrackChannel(channel);
-                    await subRepo.UpdateAsync(userSub);
-                }
+                    Id = Guid.NewGuid(),
+                    ownerId = userId.ToString(),
+                    ChannelId = Guid.Parse(channelId)
+                };
+                await subRepo.AddAsync(newSub);
+                targetChannel.ChannelProfile.subscribersCount++;
+                isSubscribedNow = true;
             }
+
+            await channelRepo.UpdateAsync(targetChannel);
             await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task RemoveFromSubscribtions(Guid ChannelID, Guid UserID)
-        {
-            var subRepo = _unitOfWork.GetRepo<Subscriptions, SubscriptionId>();
-            var spec = new SubscribtionByOwnerIdSpecification(UserID.ToString());
-            var userSub = await subRepo.GetByIdWithSpecificationsAsync(spec);
-
-            if (userSub != null)
-            {
-                var channelToRemove = userSub.Channels.FirstOrDefault(c => c.Id.Value == ChannelID);
-                if (channelToRemove != null)
-                {
-                    userSub.UntrackChannel(channelToRemove);
-                    await subRepo.UpdateAsync(userSub);
-                    await _unitOfWork.SaveChangesAsync();
-                }
-            }
-        }
-
-        public async Task<List<SubscribtionBadgeDTO>> GetAllSubscribedChannels(Guid UserID)
-        {
-            var subRepo = _unitOfWork.GetRepo<Subscriptions, SubscriptionId>();
-            var spec = new SubscribtionByOwnerIdSpecification(UserID.ToString());
-            var userSub = await subRepo.GetByIdWithSpecificationsAsync(spec);
-
-            if (userSub == null) return new List<SubscribtionBadgeDTO>();
-
-            return userSub.Channels.Select(c => new SubscribtionBadgeDTO
-            {
-                ChannelName = c.Profile?.Name ?? "",
-                ChannelAvatarURL = c.Profile?.Avatar ?? ""
-            }).ToList();
-        }
-
-        public async Task<List<SubscribedChannelsVideosDTO>> GetAllSubscribedChannelsVideos(Guid UserID)
-        {
-            var subRepo = _unitOfWork.GetRepo<Subscriptions, SubscriptionId>();
-            var spec = new SubscribtionByOwnerIdSpecification(UserID.ToString());
-            var userSub = await subRepo.GetByIdWithSpecificationsAsync(spec);
-
-            if (userSub == null) return new List<SubscribedChannelsVideosDTO>();
-
-            var result = new List<SubscribedChannelsVideosDTO>();
-            foreach (var c in userSub.Channels)
-            {
-                foreach (var v in c.Videos)
-                {
-                    result.Add(new SubscribedChannelsVideosDTO
-                    {
-                        VideoThumbnail = v.Basics?.ThumbnailUrl ?? "",
-                        VideoURL = v.Basics?.VideoUrl ?? "",
-                        ChannelAvatarURL = c.Profile?.Avatar ?? "",
-                        ChannelName = c.Profile?.Name ?? "",
-                        PublishDate = v.TemporalMetadata?.UploadDate.ToString("yyyy-MM-dd") ?? "",
-                        views = v.Stats?.WatchCount ?? 0
-                    });
-                }
-            }
-            return result.OrderByDescending(x => x.PublishDate).ToList();
-        }
-
-        public async Task<List<SubscribedChannelsPostsDTO>> GetAllSubscribedChannelsPosts(Guid UserID)
-        {
-            var subRepo = _unitOfWork.GetRepo<Subscriptions, YouTubeClone.Domain.ValueObjects.SubscriptionId>();
-            var spec = new SubscribtionByOwnerIdSpecification(UserID.ToString());
-            var userSub = await subRepo.GetByIdWithSpecificationsAsync(spec);
-
-            if (userSub == null) return new List<SubscribedChannelsPostsDTO>();
-
-            var result = new List<SubscribedChannelsPostsDTO>();
-            foreach (var c in userSub.Channels)
-            {
-                foreach (var p in c.Posts)
-                {
-                    result.Add(new SubscribedChannelsPostsDTO
-                    {
-                        Content = p.PostContent ?? "",
-                        ChannelAvatarURL = c.Profile?.Avatar ?? "",
-                        ChannelName = c.Profile?.Name ?? "",
-                        PublishDate = "" // Post does not have a date property
-                    });
-                }
-            }
-            return result;
+            
+            return isSubscribedNow;
         }
     }
 }

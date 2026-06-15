@@ -1,5 +1,6 @@
+using YouTubeClone.Domain.Enums;
 using System;
-using YouTubeClone.Domain.Aggregates;
+using YouTubeClone.Domain.Entities;
 
 namespace YouTubeClone.Shared.DTOs.Posts
 {

@@ -1,2 +1,2 @@
 global using YouTubeClone.Domain.Base;
-global using YouTubeClone.Domain.ValueObjects;
+global using YouTubeClone.Domain.Enums;

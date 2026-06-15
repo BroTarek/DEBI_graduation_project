@@ -1,10 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
+using YouTubeClone.Services;
 using YouTubeClone.Core.Services;
 using YouTubeClone.Domain.Services;
-using YouTubeClone.Infrastructure.Persistence.Services.PlaylistService;
-using YouTubeClone.Infrastructure.Persistence.Services.Comment;
-using YouTubeClone.Infrastructure.Persistence.Services.Subscribtion;
 
 namespace YouTubeClone.Web.Extensions
 {
@@ -14,9 +12,9 @@ namespace YouTubeClone.Web.Extensions
         {
             services.AddScoped<IVideoService, VideoService>();
             services.AddScoped<IPlaylistService, PlaylistService>();
-            services.AddScoped<ICommentService, CommentService>();
             services.AddScoped<IChannelService, ChannelService>();
-            services.AddScoped<ISubscribtionService, SubscribtionService>();
+            services.AddScoped<ICommunityInteractionService, CommunityInteractionService>();
+            services.AddScoped<ISubscriptionService, SubscriptionService>();
             services.AddScoped<IWatchHistoryService, WatchHistoryService>();
             services.AddScoped<IViewCountService, ViewCountService>();
             

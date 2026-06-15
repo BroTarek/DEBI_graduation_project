@@ -1,18 +1,17 @@
 using System;
-using YouTubeClone.Domain.Aggregates;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using YouTubeClone.Core.Services;
 using YouTubeClone.Domain.Contracts.UOW;
-using YouTubeClone.Domain.Aggregates.Playlists;
-using YouTubeClone.Domain.Aggregates.Videos;
-using YouTubeClone.Domain.Aggregates.Channels;
-using YouTubeClone.Domain.ValueObjects;
-using YouTubeClone.Core.Services.Specifications.PlaylistSpec;
-using YouTubeClone.Shared.DTOs.Playlist; // Assuming this namespace based on folder structure
+using YouTubeClone.Domain.Entities.Playlists;
+using YouTubeClone.Domain.Entities.Videos;
+using YouTubeClone.Domain.Enums;
+using YouTubeClone.Services.Specifications;
+using YouTubeClone.Shared.Common;
+using YouTubeClone.Shared.Common.Params;
+using YouTubeClone.Shared.Dto_s;
 
-namespace YouTubeClone.Infrastructure.Persistence.Services.PlaylistService
+namespace YouTubeClone.Services
 {
     public class PlaylistService : IPlaylistService
     {
@@ -23,167 +22,141 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.PlaylistService
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<Guid> CreateChannelPlaylist(Guid channelId, CreatePlaylistDto dto, Guid currentUserId)
+        public async Task<bool> CreatePlaylistAsync(Guid targetId, string label, string name, string description)
         {
-            // Verify channel ownership
-            var channelRepo = _unitOfWork.GetRepo<Channel, ChannelId>();
-            var channel = await channelRepo.GetByIdAsync(new ChannelId(channelId));
-            if (channel == null)
+            var playlistRepo = _unitOfWork.GetRepo<Playlist, Guid>();
+
+            if (label.ToLower() == "channel")
             {
-                throw new UnauthorizedAccessException("You are not authorized to create a playlist for this channel.");
+                var channelPlaylist = new ChannelPlaylist
+                {
+                    Id = Guid.NewGuid(),
+                    channelId = targetId,
+                    description = description,
+                    accessibility = Accessibility.PUBLIC,
+                    videos = new List<Video>()
+                };
+                await playlistRepo.AddAsync(channelPlaylist);
             }
-
-            var playlistId = new PlaylistId(Guid.NewGuid());
-            var accessibility = dto.IsPublic ? Accessibility.PUBLIC : Accessibility.PRIVATE;
-            
-            var playlist = new ChannelPlaylist(playlistId, channelId.ToString(), dto.Name, dto.Description, dto.ThumbnailUrl ?? "", accessibility);
-            
-            var playlistRepo = _unitOfWork.GetRepo<Playlist, PlaylistId>();
-            await playlistRepo.AddAsync(playlist);
-            await _unitOfWork.SaveChangesAsync();
-
-            return playlistId.Value;
-        }
-
-        public async Task<Guid> CreateCustomPlaylist(Guid userId, CreatePlaylistDto dto, Guid currentUserId)
-        {
-            if (userId != currentUserId)
+            else if (label.ToLower() == "custom")
             {
-                throw new UnauthorizedAccessException("You can only create custom playlists for yourself.");
-            }
-
-            var playlistId = new PlaylistId(Guid.NewGuid());
-            var accessibility = dto.IsPublic ? Accessibility.PUBLIC : Accessibility.PRIVATE;
-
-            var playlist = new CustomPlaylist(playlistId, userId.ToString(), dto.Name, dto.Description, dto.ThumbnailUrl ?? "", accessibility);
-
-            var playlistRepo = _unitOfWork.GetRepo<Playlist, PlaylistId>();
-            await playlistRepo.AddAsync(playlist);
-            await _unitOfWork.SaveChangesAsync();
-
-            return playlistId.Value;
-        }
-
-        public async Task DeletePlaylist(Guid playlistId, Guid currentUserId)
-        {
-            var playlistRepo = _unitOfWork.GetRepo<Playlist, PlaylistId>();
-            var playlist = await playlistRepo.GetByIdAsync(new PlaylistId(playlistId));
-            
-            if (playlist == null) throw new KeyNotFoundException("Playlist not found");
-
-            await VerifyPlaylistOwnership(playlist, currentUserId);
-
-            await playlistRepo.DeleteAsync(playlist);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task AddVideoToPlaylist(Guid videoId, Guid playlistId, Guid currentUserId)
-        {
-            var playlistRepo = _unitOfWork.GetRepo<Playlist, PlaylistId>();
-            var spec = new PlaylistWithVideosSpecification(new PlaylistId(playlistId));
-            var playlist = await playlistRepo.GetByIdWithSpecificationsAsync(spec);
-
-            if (playlist == null) throw new KeyNotFoundException("Playlist not found");
-
-            await VerifyPlaylistOwnership(playlist, currentUserId);
-
-            var videoRepo = _unitOfWork.GetRepo<Video, VideoId>();
-            var video = await videoRepo.GetByIdAsync(new VideoId(videoId));
-            if (video == null) throw new KeyNotFoundException("Video not found");
-
-            if (!playlist.Videos.Any(v => v.Id.Value == videoId))
-            {
-                playlist.AddVideo(video);
-                await playlistRepo.UpdateAsync(playlist);
-                await _unitOfWork.SaveChangesAsync();
-            }
-        }
-
-        public async Task RemoveVideoFromPlaylist(Guid videoId, Guid playlistId, Guid currentUserId)
-        {
-            var playlistRepo = _unitOfWork.GetRepo<Playlist, PlaylistId>();
-            var spec = new PlaylistWithVideosSpecification(new PlaylistId(playlistId));
-            var playlist = await playlistRepo.GetByIdWithSpecificationsAsync(spec);
-
-            if (playlist == null) throw new KeyNotFoundException("Playlist not found");
-
-            await VerifyPlaylistOwnership(playlist, currentUserId);
-
-            var videoToRemove = playlist.Videos.FirstOrDefault(v => v.Id.Value == videoId);
-            if (videoToRemove != null)
-            {
-                playlist.RemoveVideo(videoToRemove);
-                await playlistRepo.UpdateAsync(playlist);
-                await _unitOfWork.SaveChangesAsync();
-            }
-        }
-
-        public async Task UpdatePlaylist(Guid playlistId, CreatePlaylistDto dto, Guid currentUserId)
-        {
-            var playlistRepo = _unitOfWork.GetRepo<Playlist, PlaylistId>();
-            var playlist = await playlistRepo.GetByIdAsync(new PlaylistId(playlistId));
-
-            if (playlist == null) throw new KeyNotFoundException("Playlist not found");
-
-            await VerifyPlaylistOwnership(playlist, currentUserId);
-
-            var accessibility = dto.IsPublic ? Accessibility.PUBLIC : Accessibility.PRIVATE;
-            playlist.UpdateDetails(dto.Name, dto.Description, accessibility);
-
-            await playlistRepo.UpdateAsync(playlist);
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task<List<PlaylistDto>> GetAllPlaylistsOfChannel(Guid channelId)
-        {
-            var playlistRepo = _unitOfWork.GetRepo<ChannelPlaylist, PlaylistId>();
-            var spec = new PlaylistByChannelIdSpecification(channelId.ToString());
-            var playlists = await playlistRepo.GetAllWithSpecificationAsync(spec);
-
-            return playlists.Select(p => MapToDto(p, Guid.Parse(p.ChannelId))).ToList();
-        }
-
-        public async Task<List<PlaylistDto>> GetAllPlaylistsCreatedByUser(Guid userId)
-        {
-            var playlistRepo = _unitOfWork.GetRepo<CustomPlaylist, PlaylistId>();
-            var spec = new PlaylistByUserIdSpecification(userId.ToString());
-            var playlists = await playlistRepo.GetAllWithSpecificationAsync(spec);
-
-            return playlists.Select(p => MapToDto(p, Guid.Empty)).ToList(); // Custom playlists don't have ChannelId
-        }
-
-        private async Task VerifyPlaylistOwnership(Playlist playlist, Guid currentUserId)
-        {
-            if (playlist is ChannelPlaylist cp)
-            {
-                var channelRepo = _unitOfWork.GetRepo<Channel, ChannelId>();
-                var channel = await channelRepo.GetByIdAsync(new ChannelId(Guid.Parse(cp.ChannelId)));
-                if (channel == null)
-                    throw new UnauthorizedAccessException("You don't own this channel playlist.");
-            }
-            else if (playlist is CustomPlaylist up)
-            {
-                if (up.OwnerId != currentUserId.ToString())
-                    throw new UnauthorizedAccessException("You don't own this custom playlist.");
+                var customPlaylist = new CustomPlaylist
+                {
+                    Id = Guid.NewGuid(),
+                    name = name,
+                    ownerId = targetId.ToString(),
+                    accessibility = Accessibility.PRIVATE,
+                    videos = new List<Video>()
+                };
+                await playlistRepo.AddAsync(customPlaylist);
             }
             else
             {
-                throw new UnauthorizedAccessException("Unknown playlist type ownership.");
+                return false;
             }
+
+            return await _unitOfWork.SaveChangesAsync() > 0;
         }
 
-        private PlaylistDto MapToDto(Playlist playlist, Guid channelId)
+        public async Task<bool> AddVideoToPlaylistAsync(Guid playlistId, string videoId)
         {
-            return new PlaylistDto
+            var playlistRepo = _unitOfWork.GetRepo<Playlist, Guid>();
+            var videoRepo = _unitOfWork.GetRepo<Video, Guid>();
+
+            var spec = new PlaylistWithVideosSpecification(playlistId, new QueryParams());
+            var playlist = await playlistRepo.GetByIdWithSpecificationsAsync(spec);
+            var video = (await videoRepo.GetAllAsync()).FirstOrDefault(v => v.video_Basics.VideoId == Guid.Parse(videoId));
+
+            if (playlist == null || video == null) return false;
+
+            playlist.videos ??= new List<Video>();
+            if (!playlist.videos.Any(v => v.video_Basics.VideoId == Guid.Parse(videoId)))
             {
-                Id = playlist.Id.Value,
-                ChannelId = channelId,
-                Name = playlist.Name,
-                Description = playlist.Description,
-                ThumbnailUrl = playlist.ThumbnailUrl,
-                IsPublic = playlist.Accessibility == Accessibility.PUBLIC,
-                VideoIds = playlist.Videos.Select(v => v.Id.Value).ToList()
+                playlist.videos.Add(video);
+                await playlistRepo.UpdateAsync(playlist);
+                return await _unitOfWork.SaveChangesAsync() > 0;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> RemoveVideoFromPlaylistAsync(Guid playlistId, string videoId)
+        {
+            var playlistRepo = _unitOfWork.GetRepo<Playlist, Guid>();
+            var spec = new PlaylistWithVideosSpecification(playlistId, new QueryParams());
+            var playlist = await playlistRepo.GetByIdWithSpecificationsAsync(spec);
+
+            if (playlist == null || playlist.videos == null) return false;
+
+            var targetVideo = playlist.videos.FirstOrDefault(v => v.video_Basics.VideoId == Guid.Parse(videoId));
+            if (targetVideo == null) return false;
+
+            playlist.videos.Remove(targetVideo);
+            await playlistRepo.UpdateAsync(playlist);
+            return await _unitOfWork.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> ClearPlaylistAsync(Guid playlistId)
+        {
+            var playlistRepo = _unitOfWork.GetRepo<Playlist, Guid>();
+            var spec = new PlaylistWithVideosSpecification(playlistId, new QueryParams());
+            var playlist = await playlistRepo.GetByIdWithSpecificationsAsync(spec);
+
+            if (playlist == null) return false;
+
+            playlist.videos?.Clear();
+            await playlistRepo.UpdateAsync(playlist);
+            return await _unitOfWork.SaveChangesAsync() > 0;
+        }
+
+        public async Task<PlaylistVideosResultDTO?> GetVideosInPlaylistAsync(Guid playlistId, QueryParams queryParams)
+        {
+            var playlistRepo = _unitOfWork.GetRepo<Playlist, Guid>();
+            var spec = new PlaylistWithVideosSpecification(playlistId, queryParams);
+            var playlist = await playlistRepo.GetByIdWithSpecificationsAsync(spec);
+
+            if (playlist == null) return null;
+
+            string playlistName = playlist is CustomPlaylist cp ? cp.name : "Channel Playlist Collection";
+            string playlistDesc = playlist is ChannelPlaylist chp ? chp.description : "User Custom Curated Video Vault";
+            
+            string defaultThumb = playlist.videos?.FirstOrDefault()?.video_Basics?.ThumbnailUrl ?? "https://api.dicebear.com/7.x/identicon/svg?seed=playlist";
+
+            var totalCount = playlist.videos?.Count ?? 0;
+            var processedItems = (playlist.videos ?? new List<Video>())
+                .Skip((queryParams.PageIndex - 1) * queryParams.PageSize)
+                .Take(queryParams.PageSize)
+                .Select(v => new PlaylistVideoItemDTO
+                {
+                    VideoId = v.video_Basics.VideoId.ToString(),
+                    VideoName = v.video_Descriptive.Title,
+                    VideoUrl = v.video_Basics.videoUrl,
+                    ThumbnailUrl = v.video_Basics.ThumbnailUrl,
+                    UploadDate = v.Temporal_Metadata.UploadDate
+                });
+
+            return new PlaylistVideosResultDTO
+            {
+                PlaylistName = playlistName,
+                Description = playlistDesc,
+                PlaylistThumbnailUrl = defaultThumb,
+                Videos = new Pagination<PlaylistVideoItemDTO>(queryParams.PageIndex, queryParams.PageSize, totalCount, processedItems)
             };
+        }
+
+        public async Task<IEnumerable<CompactPlaylistLookupDTO>> GetAllPlaylistsAsync(string ownerId, string label)
+        {
+            var playlistRepo = _unitOfWork.GetRepo<Playlist, Guid>();
+            var spec = new OwnerPlaylistsSpecification(ownerId, label);
+            var playlists = await playlistRepo.GetAllWithSpecificationAsync(spec);
+
+            return playlists.Select(p => new CompactPlaylistLookupDTO
+            {
+                PlaylistId = p.Id.ToString(),
+                Name = p is CustomPlaylist cp ? cp.name : "Channel Content List",
+                VideosCount = p.videos?.Count ?? 0,
+                ThumbnailUrl = p.videos?.FirstOrDefault()?.video_Basics?.ThumbnailUrl ?? "https://api.dicebear.com/7.x/identicon/svg?seed=playlist"
+            });
         }
     }
 }

@@ -4,92 +4,89 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using YouTubeClone.Domain.Aggregates.Users;
-using YouTubeClone.Domain.Aggregates.Channels;
+using YouTubeClone.Domain.Entities.Channels;
+using YouTubeClone.Domain.Entities.Videos;
+using YouTubeClone.Domain.Entities.Playlists;
+using YouTubeClone.Domain.Entities.Subscriptions;
+using YouTubeClone.Domain.Entities.WatchHistories;
 using YouTubeClone.Domain.Aggregates.Videos;
-using YouTubeClone.Domain.Aggregates.Playlists;
-using YouTubeClone.Domain.Aggregates.Subscriptions;
-using YouTubeClone.Domain.Aggregates.Interactions;
-using YouTubeClone.Domain.Aggregates.WatchHistories;
 
 namespace YouTubeClone.Persistance.Contexts
 {
     public class YouTubeCloneDbContext(DbContextOptions<YouTubeCloneDbContext> options) : IdentityDbContext<ApplicationUser>(options)
     {
-        public DbSet<User> DomainUsers { get; set; }
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Video> Videos { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Playlist> Playlists { get; set; }
-        public DbSet<Subscriptions> Subscriptions { get; set; }
-        public DbSet<UserInteraction> UserInteractions { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<WatchHistory> WatchHistories { get; set; }
+        public DbSet<Post> Posts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
             builder.ApplyConfigurationsFromAssembly(typeof(YouTubeCloneDbContext).Assembly);
 
-            // Configure primary keys and strong-typed IDs conversions
-            builder.Entity<User>().HasKey(x => x.Id);
-            builder.Entity<User>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.UserId(val));
-            builder.Entity<User>().OwnsOne(u => u.Credentials);
-            builder.Entity<User>().OwnsOne(u => u.ProfileInfo);
-
+            // Configure Channel entity
             builder.Entity<Channel>().HasKey(x => x.Id);
-            builder.Entity<Channel>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.ChannelId(val));
-            builder.Entity<Channel>().OwnsOne(c => c.Profile);
+            builder.Entity<Channel>().OwnsOne(c => c.ChannelProfile);
 
+            // Configure Video entity
             builder.Entity<Video>().HasKey(x => x.Id);
-            builder.Entity<Video>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.VideoId(val));
-            builder.Entity<Video>().OwnsOne(v => v.Basics);
-            builder.Entity<Video>().OwnsOne(v => v.Descriptive);
-            builder.Entity<Video>().OwnsOne(v => v.TechnicalDetails);
-            builder.Entity<Video>().OwnsOne(v => v.TemporalMetadata);
-            builder.Entity<Video>().OwnsOne(v => v.Stats);
+            builder.Entity<Video>().OwnsOne(v => v.video_Basics);
+            builder.Entity<Video>().OwnsOne(v => v.video_Descriptive);
+            builder.Entity<Video>().OwnsOne(v => v.video_Technical_details);
+            builder.Entity<Video>().OwnsOne(v => v.Temporal_Metadata);
+            builder.Entity<Video>().OwnsOne(v => v.VideoStats);
 
+            // Configure Comment entity
             builder.Entity<Comment>().HasKey(x => x.Id);
-            builder.Entity<Comment>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.CommentId(val));
+            builder.Entity<Comment>()
+                .HasOne(c => c.ParentComment)
+                .WithMany(c => c.Replies)
+                .HasForeignKey(c => c.ParentCommentId)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            // Configure Playlist entities (TPH)
             builder.Entity<Playlist>().HasKey(x => x.Id);
-            builder.Entity<Playlist>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.PlaylistId(val));
+            builder.Entity<Playlist>()
+                .HasMany(p => p.videos)
+                .WithMany(v => v.Playlists)
+                .UsingEntity<Dictionary<string, object>>(
+                    "PlaylistVideo",
+                    j => j.HasOne<Video>().WithMany().HasForeignKey("videosId").OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne<Playlist>().WithMany().HasForeignKey("PlaylistsId").OnDelete(DeleteBehavior.Cascade)
+                );
 
-            builder.Entity<Subscriptions>().HasKey(x => x.Id);
-            builder.Entity<Subscriptions>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.SubscriptionId(val));
+            // Configure Subscription entity
+            builder.Entity<Subscription>().HasKey(x => x.Id);
 
-            builder.Entity<UserInteraction>().HasKey(x => x.Id);
-            builder.Entity<UserInteraction>().Property(x => x.Id).HasConversion(id => id.Value, val => new UserInteractionId(val));
-
+            // Configure WatchHistory entity
             builder.Entity<WatchHistory>().HasKey(x => x.Id);
-            builder.Entity<WatchHistory>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.WatchHistoryId(val));
+            builder.Entity<WatchHistory>()
+                .HasMany(wh => wh.videos)
+                .WithMany(v => v.WatchHistories)
+                .UsingEntity<Dictionary<string, object>>(
+                    "WatchHistoryVideo",
+                    j => j.HasOne<Video>().WithMany().HasForeignKey("videosId").OnDelete(DeleteBehavior.Restrict),
+                    j => j.HasOne<WatchHistory>().WithMany().HasForeignKey("WatchHistoriesId").OnDelete(DeleteBehavior.Cascade)
+                );
 
+            // Configure Post entity
             builder.Entity<Post>().HasKey(x => x.Id);
-            builder.Entity<Post>().Property(x => x.Id).HasConversion(id => id.Value, val => new PostId(val));
 
-            // Configure 1-to-1 relationships to resolve EF Core conventions
-            builder.Entity<User>()
-                .HasOne(u => u.Channel)
+            // Configure 1-to-1 relationships with ApplicationUser
+            builder.Entity<ApplicationUser>()
+                .HasOne<Channel>()
                 .WithOne(c => c.Owner)
-                .HasForeignKey<Channel>("OwnerId"); // Shadow property
+                .HasForeignKey<Channel>(c => c.OwnerId);
 
-            builder.Entity<User>()
-                .HasOne(u => u.WatchHistory)
-                .WithOne(w => w.Owner)
-                .HasForeignKey<WatchHistory>("OwnerId"); // Shadow property
+            builder.Entity<ApplicationUser>()
+                .HasOne<WatchHistory>()
+                .WithOne(w => w.owner)
+                .HasForeignKey<WatchHistory>(w => w.OwnerId);
 
-            builder.Entity<User>()
-                .HasOne(u => u.LikedVideosPlaylist)
-                .WithOne()
-                .HasForeignKey<LikedVideosPlaylist>("DomainUserId"); // Shadow property to avoid clashing with string OwnerId
-
-            builder.Entity<User>()
-                .HasOne(u => u.Subscriptions)
-                .WithOne()
-                .HasForeignKey<Subscriptions>("DomainUserId"); // Shadow property to avoid clashing with string OwnerId
-           
             builder.Entity<IdentityRole>().ToTable("Roles");
             builder.Entity<IdentityUserRole<string>>().ToTable("UserRoles");
             builder.Entity<IdentityUserClaim<string>>().ToTable("UserClaims");

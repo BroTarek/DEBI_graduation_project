@@ -1,9 +1,12 @@
-﻿using YouTubeClone.Domain.Contracts.InitializerDB;
+using YouTubeClone.Domain.Contracts.InitializerDB;
 using YouTubeClone.Domain.Models.Identity;
 using YouTubeClone.Persistance.Contexts;
 using YouTubeClone.Persistance.Seeds;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace YouTubeClone.Persistance.Implements.InitializerImplement
 {
@@ -19,13 +22,12 @@ namespace YouTubeClone.Persistance.Implements.InitializerImplement
             }
             catch (Exception)
             {
-                // Log the exception or handle it as needed
                 throw;
             }
-            await SeederAsync.SeedRolesAsync(roleManager);
-
-            await SeederAsync.SeedAdminsAsync(userManager);
             
+            await SeederAsync.SeedRolesAsync(roleManager);
+            await SeederAsync.SeedAdminsAsync(userManager);
+            await SeederAsync.SeedChannelsAsync(YouTubeCloneDbContext);
         }
     }
 }

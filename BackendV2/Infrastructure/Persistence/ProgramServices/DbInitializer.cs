@@ -1,8 +1,9 @@
-﻿using YouTubeClone.Domain.Contracts.InitializerDB;
+using YouTubeClone.Domain.Contracts.InitializerDB;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
 
 namespace YouTubeClone.Persistance.Extensions
 {
@@ -21,7 +22,7 @@ namespace YouTubeClone.Persistance.Extensions
                 catch (Exception ex)
                 {
                     var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("DbInitializer");
-                    logger.LogError(ex, "An error occurred while seeding roles.");
+                    logger.LogError(ex, "An error occurred while seeding the database.");
                 }
             }
         }
