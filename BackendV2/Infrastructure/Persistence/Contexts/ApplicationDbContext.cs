@@ -53,6 +53,15 @@ namespace YouTubeClone.Persistance.Contexts
 
             builder.Entity<Comment>().HasKey(x => x.Id);
             builder.Entity<Comment>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.CommentId(val));
+            builder.Entity<Comment>().Property(x => x.ParentCommentId)
+                .HasConversion(
+                    id => id == null ? (Guid?)null : id.Value,
+                    val => val == null ? null : new YouTubeClone.Domain.ValueObjects.CommentId(val.Value)
+                );
+            builder.Entity<Comment>()
+                .HasOne(c => c.ParentComment)
+                .WithMany()
+                .HasForeignKey(c => c.ParentCommentId);
 
             builder.Entity<Playlist>().HasKey(x => x.Id);
             builder.Entity<Playlist>().Property(x => x.Id).HasConversion(id => id.Value, val => new YouTubeClone.Domain.ValueObjects.PlaylistId(val));

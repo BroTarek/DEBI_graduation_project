@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone - Watch</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo" style="cursor: pointer;" onclick="window.location.href='index.html'">
+            <span class="logo-icon">▶</span>
+            <h1>YouTube Clone</h1>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search">
+            <button>🔍</button>
+        </div>
+        <div class="user-actions">
+            <a href="upload.html" class="btn btn-upload">Upload Video</a>
+            <div class="avatar" style="cursor: pointer;" id="header-avatar">U</div>
+        </div>
+    </header>
+    
+    <main class="content">
+        <!-- Main columns wrapper -->
+        <div class="watch-layout">
+            <!-- Left side (Player & Comments) -->
+            <div class="watch-main">
+                <div class="player-container">
+                    <video id="video-player" controls autoplay></video>
+                </div>
+                
+                <h1 class="watch-title" id="video-title">Loading Title...</h1>
+                
+                <div class="watch-meta" id="video-meta">
+                    0 views • Loading date...
+                </div>
+                
+                <div class="watch-description" id="video-description">
+                    Loading description...
+                </div>
+                
+                <!-- Comments Section -->
+                <div class="watch-comments-section">
+                    <h2 class="comments-count-title" id="comments-count">Comments</h2>
+                    
+                    <!-- Write Comment Form -->
+                    <div class="main-comment-input">
+                        <img src="https://ui-avatars.com/api/?name=User&background=random" class="comment-avatar" alt="Avatar">
+                        <div class="comment-input-box">
+                            <input type="text" placeholder="Add a public comment..." id="main-comment-text">
+                            <div class="comment-input-actions" id="main-comment-actions" style="display: none;">
+                                <button class="btn btn-cancel" id="btn-cancel-main">Cancel</button>
+                                <button class="btn btn-primary-blue" id="btn-submit-main">Comment</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments List -->
+                    <div class="comments-container-list" id="video-comments-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right side (Recommendations) -->
+            <div class="watch-sidebar">
+                <h3 class="sidebar-title">Recommendation</h3>
+                <div class="recommendations-list" id="recommendations-list">
+                    <!-- Populated from homepage videos endpoint -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js?v=5"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const videoId = urlParams.get('id');
+            
+            if (!videoId) {
+                window.location.href = 'index.html';
+                return;
+            }
+            
+            // Load video details and player source
+            loadWatchPage(videoId);
+            
+            // Wire up header avatar click
+            const headerAvatar = document.getElementById('header-avatar');
+            if (headerAvatar) {
+                headerAvatar.addEventListener('click', () => {
+                    window.location.href = `channel.html?id=${TEST_CHANNEL_ID}`;
+                });
+            }
+            
+            // Wire up main comment input cancel/show buttons
+            const mainInput = document.getElementById('main-comment-text');
+            const mainActions = document.getElementById('main-comment-actions');
+            const mainCancel = document.getElementById('btn-cancel-main');
+            const mainSubmit = document.getElementById('btn-submit-main');
+            
+            if (mainInput) {
+                mainInput.addEventListener('focus', () => {
+                    mainActions.style.display = 'flex';
+                });
+            }
+            if (mainCancel) {
+                mainCancel.addEventListener('click', () => {
+                    mainInput.value = '';
+                    mainActions.style.display = 'none';
+                });
+            }
+            if (mainSubmit) {
+                mainSubmit.addEventListener('click', () => {
+                    const text = mainInput.value.trim();
+                    if (text) {
+                        submitComment(videoId, 'video', null, text, () => {
+                            mainInput.value = '';
+                            mainActions.style.display = 'none';
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

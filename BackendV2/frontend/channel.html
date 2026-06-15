@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone - Channel</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo" style="cursor: pointer;" onclick="window.location.href='index.html'">
+            <span class="logo-icon">▶</span>
+            <h1>YouTube Clone</h1>
+        </div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search">
+            <button>🔍</button>
+        </div>
+        <div class="user-actions">
+            <a href="upload.html" class="btn btn-upload">Upload Video</a>
+            <div class="avatar" style="cursor: pointer;" id="header-avatar">U</div>
+        </div>
+    </header>
+    
+    <main class="content">
+        <div class="sidebar">
+            <a href="index.html" class="sidebar-item">🏠 Home</a>
+            <a href="#" class="sidebar-item">🔥 Trending</a>
+            <a href="#" class="sidebar-item">📚 Library</a>
+        </div>
+        
+        <div class="channel-container">
+            <!-- Channel Banner -->
+            <div class="channel-banner" id="channel-banner" style="position: relative;">
+                <!-- Populated dynamically or placeholder banner -->
+                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #1f1c2c, #928dab);"></div>
+                <button class="btn btn-create-playlist" onclick="openCreateChannelPlaylistDirectly()" style="position: absolute; bottom: 16px; right: 16px; background-color: rgba(0, 0, 0, 0.7); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 8px 16px; border-radius: 20px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 13px;">📁 Create Playlist</button>
+            </div>
+            
+            <!-- Channel Profile Info -->
+            <div class="channel-header">
+                <img src="https://ui-avatars.com/api/?name=Channel&background=random" alt="Channel Avatar" class="channel-large-avatar" id="channel-avatar">
+                <div class="channel-details-info">
+                    <h1 class="channel-title" id="channel-title">Loading Channel...</h1>
+                    <div class="channel-meta-stats" id="channel-stats">@handle • 0 subscribers • 0 videos</div>
+                    <div class="channel-description-text" id="channel-desc">Loading channel description...</div>
+                    <a href="#" class="channel-link" id="channel-link" target="_blank"></a>
+                </div>
+            </div>
+            
+            <!-- Tabbed Navigation -->
+            <div class="channel-tabs">
+                <button class="tab-btn active" data-tab="videos">Videos</button>
+                <button class="tab-btn" data-tab="posts">Community Posts</button>
+            </div>
+            
+            <!-- Tab Contents -->
+            <div id="videos" class="tab-pane active">
+                <div class="video-grid" id="channel-video-grid" style="padding: 0;">
+                    <div class="loading">Loading videos...</div>
+                </div>
+            </div>
+            
+            <div id="posts" class="tab-pane">
+                <div class="posts-list" id="channel-posts-list">
+                    <div class="loading">Loading posts...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="app.js?v=5"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get channel ID from URL query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const channelId = urlParams.get('id') || TEST_CHANNEL_ID;
+            
+            // Fetch channel metadata
+            fetchChannelAbout(channelId);
+            
+            // Fetch channel videos
+            fetchChannelVideos(channelId);
+            
+            // Fetch channel posts
+            fetchChannelPosts(channelId);
+            
+            // Wire up tab switching
+            setupTabs();
+            
+            // Wire up user header avatar click
+            const headerAvatar = document.getElementById('header-avatar');
+            if (headerAvatar) {
+                headerAvatar.addEventListener('click', () => {
+                    window.location.href = `channel.html?id=${TEST_CHANNEL_ID}`;
+                });
+            }
+        });
+
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+                    // Add active to clicked tab
+                    tab.classList.add('active');
+                    
+                    // Hide all tab panes
+                    const panes = document.querySelectorAll('.tab-pane');
+                    panes.forEach(p => p.classList.remove('active'));
+                    
+                    // Show target pane
+                    const targetPaneId = tab.getAttribute('data-tab');
+                    const targetPane = document.getElementById(targetPaneId);
+                    if (targetPane) {
+                        targetPane.classList.add('active');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

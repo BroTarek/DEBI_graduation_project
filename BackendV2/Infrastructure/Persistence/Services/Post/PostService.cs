@@ -66,5 +66,21 @@ namespace YouTubeClone.Infrastructure.Persistence.Services.Post
                 await _unitOfWork.SaveChangesAsync();
             }
         }
+
+        public async Task<IEnumerable<PostDto>> GetChannelPostsAsync(Guid channelId)
+        {
+            var postRepo = _unitOfWork.GetRepo<YouTubeClone.Domain.Aggregates.Channels.Post, PostId>();
+            var posts = await postRepo.GetAllAsync();
+            return posts
+                .Where(p => p.ChannelId == channelId.ToString())
+                .Select(p => new PostDto
+                {
+                    Id = p.Id.Value,
+                    ChannelId = p.ChannelId,
+                    PostContent = p.PostContent,
+                    Accessibility = p.Accessibility
+                })
+                .ToList();
+        }
     }
 }

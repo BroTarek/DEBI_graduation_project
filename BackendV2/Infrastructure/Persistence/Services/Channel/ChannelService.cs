@@ -26,12 +26,36 @@ namespace YouTubeClone.Domain.Services
 
         public async Task<ChannelAboutDto> GetChannelAboutAsync(Guid id)
         {
-            return new ChannelAboutDto();
+            var repo = _unitOfWork.GetRepo<Channel, ChannelId>();
+            var channel = await repo.GetByIdAsync(new ChannelId(id));
+            if (channel == null) return null;
+
+            return new ChannelAboutDto
+            {
+                SubscribersCount = channel.Profile?.SubscribersCount ?? 0,
+                ChannelsDescription = channel.Profile?.ChannelsDescription ?? "",
+                Links = channel.Profile?.Links ?? "",
+                Name = channel.Profile?.Name ?? "",
+                Avatar = channel.Profile?.Avatar ?? "",
+                GreaterImg = channel.Profile?.GreaterImg ?? ""
+            };
         }
 
         public async Task<IReadOnlyList<ChannelVideoDto>> GetChannelVideosAsync(Guid id)
         {
-            return new List<ChannelVideoDto>();
+            var videoRepo = _unitOfWork.GetRepo<Video, YouTubeClone.Domain.ValueObjects.VideoId>();
+            var videos = await videoRepo.GetAllAsync();
+            return videos
+                .Where(v => v.ChannelId == id.ToString())
+                .Select(v => new ChannelVideoDto
+                {
+                    Id = v.Id.Value,
+                    Title = v.Descriptive?.Title ?? "",
+                    viewCount = v.Stats?.WatchCount ?? 0,
+                    ThumbnailURL = v.Basics?.ThumbnailUrl ?? "",
+                    PublishDate = v.TemporalMetadata?.UploadDate ?? DateTime.UtcNow
+                })
+                .ToList();
         }
     }
 }

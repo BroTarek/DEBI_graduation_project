@@ -10,5 +10,6 @@ namespace YouTubeClone.Core.Services
         Task<Guid> CreatePostAsync(CreatePostDto dto);
         Task UpdatePostAsync(Guid channelId, Guid postId, UpdatePostDto dto);
         Task DeletePostAsync(Guid channelId, Guid postId);
+        Task<IEnumerable<PostDto>> GetChannelPostsAsync(Guid channelId);
     }
 }

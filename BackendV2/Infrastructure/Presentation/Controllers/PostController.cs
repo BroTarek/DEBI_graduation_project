@@ -19,6 +19,14 @@ namespace YouTubeClone.Presentation.Controllers
             _commentService = commentService;
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetChannelPosts(Guid channelId)
+        {
+            var posts = await _postService.GetChannelPostsAsync(channelId);
+            return Ok(posts);
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreatePost(Guid channelId, [FromBody] CreatePostDto dto)
         {
