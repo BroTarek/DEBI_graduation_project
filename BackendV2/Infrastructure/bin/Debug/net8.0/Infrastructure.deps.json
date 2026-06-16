@@ -1383,7 +1383,8 @@
       },
       "Core/1.0.0": {
         "dependencies": {
-          "AutoMapper": "13.0.1"
+          "AutoMapper": "13.0.1",
+          "Microsoft.EntityFrameworkCore": "8.0.4"
         },
         "runtime": {
           "Core.dll": {

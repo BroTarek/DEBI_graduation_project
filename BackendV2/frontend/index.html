@@ -20,6 +20,7 @@
             <button>🔍</button>
         </div>
         <div class="user-actions">
+            <button class="btn btn-upload" onclick="openCreateChannelModal()" style="margin-right: 8px;">Create Channel</button>
             <a href="upload.html" class="btn btn-upload">Upload Video</a>
             <div class="avatar">U</div>
         </div>
@@ -27,9 +28,11 @@
 
     <main class="content">
         <div class="sidebar">
-            <a href="#" class="sidebar-item active">🏠 Home</a>
-            <!-- <a href="#" class="sidebar-item">Make a </a>
-            <a href="#" class="sidebar-item">📚 Library</a> -->
+            <a href="#" class="sidebar-item active" id="sidebar-home" onclick="goHome(event)">🏠 Home</a>
+            <div class="sidebar-section-title" style="font-size: 12px; font-weight: 500; color: var(--text-secondary); margin: 16px 0 8px 15px; text-transform: uppercase; letter-spacing: 0.5px;">Playlists</div>
+            <div id="sidebar-playlists" style="display: flex; flex-direction: column; gap: 4px;">
+                <div style="font-size: 12px; color: var(--text-secondary); padding: 5px 15px;">Loading...</div>
+            </div>
         </div>
 
         <div class="video-grid" id="video-grid">
@@ -40,7 +43,10 @@
 
     <script src="app.js?v=5"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', fetchVideos);
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchVideos();
+            fetchSidebarPlaylists();
+        });
     </script>
 </body>
 

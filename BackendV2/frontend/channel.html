@@ -53,6 +53,7 @@
             <div class="channel-tabs">
                 <button class="tab-btn active" data-tab="videos">Videos</button>
                 <button class="tab-btn" data-tab="posts">Community Posts</button>
+                <button class="tab-btn" data-tab="playlists">Playlists</button>
             </div>
             
             <!-- Tab Contents -->
@@ -65,6 +66,12 @@
             <div id="posts" class="tab-pane">
                 <div class="posts-list" id="channel-posts-list">
                     <div class="loading">Loading posts...</div>
+                </div>
+            </div>
+
+            <div id="playlists" class="tab-pane">
+                <div class="video-grid" id="channel-playlists-list" style="padding: 0;">
+                    <div class="loading">Loading playlists...</div>
                 </div>
             </div>
         </div>
@@ -85,6 +92,9 @@
             
             // Fetch channel posts
             fetchChannelPosts(channelId);
+
+            // Fetch channel playlists
+            fetchChannelPlaylists(channelId);
             
             // Wire up tab switching
             setupTabs();

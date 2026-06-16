@@ -181,7 +181,18 @@ async function fetchChannelAbout(channelId) {
         }
 
         if (bannerEl && data.greaterImg) {
-            bannerEl.innerHTML = `<img src="${data.greaterImg}" alt="Channel Banner">`;
+            let imgEl = bannerEl.querySelector('img');
+            if (!imgEl) {
+                imgEl = document.createElement('img');
+                imgEl.alt = "Channel Banner";
+                bannerEl.insertBefore(imgEl, bannerEl.firstChild);
+            }
+            imgEl.src = data.greaterImg;
+            
+            const placeholder = bannerEl.querySelector('div');
+            if (placeholder) {
+                placeholder.remove();
+            }
         }
     } catch (error) {
         console.error('Error fetching channel about:', error);
@@ -831,6 +842,7 @@ function openCreateChannelPlaylistDirectly() {
     }
     
     modal.style.display = 'flex';
+    modal.innerHTML = `<div class="modal-content"></div>`;
     openCreatePlaylistForm();
 }
 
@@ -847,3 +859,355 @@ window.openCreatePlaylistForm = openCreatePlaylistForm;
 window.submitCreatePlaylist = submitCreatePlaylist;
 window.openCreateChannelPlaylistDirectly = openCreateChannelPlaylistDirectly;
 window.closePlaylistModal = closePlaylistModal;
+
+// --- Playlist Tab Operations ---
+
+async function fetchChannelPlaylists(channelId) {
+    const listEl = document.getElementById('channel-playlists-list');
+    if (!listEl) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/Playlist/channel/${channelId}`);
+        if (!response.ok) throw new Error('Failed to fetch playlists');
+
+        const resObj = await response.json();
+        const playlists = resObj.data || [];
+
+        // Reset display style in case it was modified by detail view
+        listEl.style.display = 'grid';
+        listEl.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+        listEl.style.gap = '20px';
+
+        if (playlists && playlists.length > 0) {
+            listEl.innerHTML = playlists.map(pl => {
+                const videoCount = pl.videoIds ? pl.videoIds.length : 0;
+                return `
+                    <div class="playlist-card" onclick="showPlaylistDetail(${JSON.stringify(pl).replace(/"/g, '&quot;')})" style="background-color: var(--card-bg); border-radius: 12px; overflow: hidden; cursor: pointer; display: flex; flex-direction: column; transition: transform 0.2s; border: 1px solid var(--border);">
+                        <div class="thumbnail-container" style="background-color: #333; display: flex; align-items: center; justify-content: center; position: relative; padding-top: 56.25%;">
+                            ${pl.thumbnailUrl ? `<img src="${pl.thumbnailUrl}" class="thumbnail" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">` : `<div class="playlist-placeholder-icon" style="position: absolute; font-size: 48px; color: #555; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">📁</div>`}
+                            <div class="playlist-overlay" style="position: absolute; right: 0; top: 0; bottom: 0; width: 40%; background-color: rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+                                <span style="font-size: 20px; color: white;">${videoCount}</span>
+                                <span style="font-size: 11px; text-transform: uppercase; color: #aaa; font-weight: 500;">Videos</span>
+                            </div>
+                        </div>
+                        <div style="padding: 12px; display: flex; flex-direction: column; gap: 4px;">
+                            <h4 style="margin: 0; font-size: 15px; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${pl.name}">${pl.name}</h4>
+                            <p style="margin: 0; font-size: 12px; color: var(--text-secondary); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; height: 34px;">${pl.description || 'No description'}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            listEl.innerHTML = '<div class="loading">This channel has no playlists yet.</div>';
+        }
+    } catch (error) {
+        console.error('Error fetching channel playlists:', error);
+        listEl.innerHTML = `<div class="loading" style="color: #f44336;">Error loading playlists.</div>`;
+    }
+}
+
+async function showPlaylistDetail(playlist) {
+    const listEl = document.getElementById('channel-playlists-list');
+    if (!listEl) return;
+
+    listEl.innerHTML = `<div class="loading">Loading videos in playlist...</div>`;
+
+    try {
+        const videoPromises = (playlist.videoIds || []).map(async (id) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/watch?videoId=${id}`);
+                if (!response.ok) return null;
+                const res = await response.json();
+                return res.data;
+            } catch (err) {
+                console.error(`Error loading video ${id}:`, err);
+                return null;
+            }
+        });
+
+        const videos = (await Promise.all(videoPromises)).filter(v => v !== null);
+
+        let videosHtml = '';
+        if (videos.length > 0) {
+            videosHtml = videos.map(video => {
+                const timeAgo = getTimeAgo(new Date(video.uploadDate));
+                const link = `watch.html?id=${video.id}`;
+                const durationFormatted = video.duration ? formatDuration(video.duration) : '0:00';
+                
+                return `
+                    <div class="video-card" onclick="window.location.href='${link}'" style="cursor: pointer;">
+                        <div class="thumbnail-container">
+                            <img src="${video.thumbnailUrl || 'https://via.placeholder.com/640x360?text=No+Thumbnail'}" alt="Thumbnail" class="thumbnail">
+                            <div class="video-duration">${durationFormatted}</div>
+                        </div>
+                        <div class="video-info" style="padding-top: 8px;">
+                            <div class="video-details" style="position: relative; width: 100%;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <h3 class="video-title" title="${video.title}" style="margin: 0; flex: 1;">${video.title}</h3>
+                                </div>
+                                <div class="video-meta">
+                                    <div>${video.channelName || 'Unknown Channel'}</div>
+                                    <div>${video.views} views • ${timeAgo}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            videosHtml = '<div class="loading" style="grid-column: 1 / -1;">This playlist has no videos.</div>';
+        }
+
+        // Render details view
+        listEl.style.display = 'block'; // Convert grid to block for layout flow
+        listEl.innerHTML = `
+            <div class="playlist-detail-header" style="margin-bottom: 24px; padding: 20px; background-color: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); position: relative;">
+                <button class="btn" onclick="fetchChannelPlaylists('${playlist.channelId || ''}')" style="background-color: #272727; color: white; border: none; padding: 8px 16px; border-radius: 18px; font-weight: 500; cursor: pointer; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 6px;">← Back to Playlists</button>
+                <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px; color: white;">📁 ${playlist.name}</h2>
+                <p style="font-size: 14px; color: var(--text-secondary); margin: 0; max-width: 800px; line-height: 1.5;">${playlist.description || 'No description available.'}</p>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 10px; font-weight: 500;">
+                    ${playlist.videoIds.length} video${playlist.videoIds.length === 1 ? '' : 's'} • ${playlist.isPublic ? 'Public' : 'Private'}
+                </div>
+            </div>
+            <div class="video-grid" style="padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px;">
+                ${videosHtml}
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error showing playlist detail:', error);
+        listEl.innerHTML = `<div class="loading" style="color: #f44336;">Error loading playlist videos.</div>`;
+    }
+}
+
+function formatDuration(seconds) {
+    if (isNaN(seconds) || seconds === null) return '0:00';
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hrs > 0) {
+        return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+window.fetchChannelPlaylists = fetchChannelPlaylists;
+window.showPlaylistDetail = showPlaylistDetail;
+window.formatDuration = formatDuration;
+
+// --- Home Page Sidebar Custom Playlist Operations ---
+
+async function fetchSidebarPlaylists() {
+    const sidebarContainer = document.getElementById('sidebar-playlists');
+    if (!sidebarContainer) return;
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/Playlist/user/${TEST_USER_ID}`);
+        if (!response.ok) throw new Error('Failed to fetch user playlists');
+
+        const resObj = await response.json();
+        const playlists = resObj.data || [];
+
+        if (playlists && playlists.length > 0) {
+            sidebarContainer.innerHTML = playlists.map(pl => {
+                return `
+                    <a href="#" class="sidebar-item sidebar-playlist-link" id="sidebar-pl-${pl.id}" onclick="showCustomPlaylistInHome(event, ${JSON.stringify(pl).replace(/"/g, '&quot;')})">📁 ${pl.name}</a>
+                `;
+            }).join('');
+        } else {
+            sidebarContainer.innerHTML = '<div style="font-size: 12px; color: var(--text-secondary); padding: 5px 15px;">No playlists</div>';
+        }
+    } catch (error) {
+        console.error('Error fetching sidebar playlists:', error);
+        sidebarContainer.innerHTML = '<div style="font-size: 11px; color: #f44336; padding: 5px 15px;">Error loading</div>';
+    }
+}
+
+async function showCustomPlaylistInHome(event, playlist) {
+    if (event) event.preventDefault();
+
+    // Update active sidebar selection
+    const homeBtn = document.getElementById('sidebar-home');
+    if (homeBtn) homeBtn.classList.remove('active');
+
+    const sidebarLinks = document.querySelectorAll('.sidebar-playlist-link');
+    sidebarLinks.forEach(link => link.classList.remove('active'));
+
+    const activeLink = document.getElementById(`sidebar-pl-${playlist.id}`);
+    if (activeLink) activeLink.classList.add('active');
+
+    // Load videos inside video-grid
+    const grid = document.getElementById('video-grid');
+    if (!grid) return;
+
+    grid.innerHTML = '<div class="loading">Loading playlist videos...</div>';
+    // Remove grid columns during details banner, then restore for video cards
+    grid.style.display = 'block';
+
+    try {
+        const videoPromises = (playlist.videoIds || []).map(async (id) => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/watch?videoId=${id}`);
+                if (!response.ok) return null;
+                const res = await response.json();
+                return res.data;
+            } catch (err) {
+                console.error(`Error loading video ${id}:`, err);
+                return null;
+            }
+        });
+
+        const videos = (await Promise.all(videoPromises)).filter(v => v !== null);
+
+        let videosHtml = '';
+        if (videos.length > 0) {
+            videosHtml = videos.map(video => {
+                const timeAgo = getTimeAgo(new Date(video.uploadDate));
+                const link = `watch.html?id=${video.id}`;
+                const durationFormatted = video.duration ? formatDuration(video.duration) : '0:00';
+                
+                return `
+                    <div class="video-card" onclick="window.location.href='${link}'" style="cursor: pointer;">
+                        <div class="thumbnail-container">
+                            <img src="${video.thumbnailUrl || 'https://via.placeholder.com/640x360?text=No+Thumbnail'}" alt="Thumbnail" class="thumbnail">
+                            <div class="video-duration">${durationFormatted}</div>
+                        </div>
+                        <div class="video-info" style="padding-top: 8px;">
+                            <div class="video-details" style="position: relative; width: 100%;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                                    <h3 class="video-title" title="${video.title}" style="margin: 0; flex: 1;">${video.title}</h3>
+                                </div>
+                                <div class="video-meta">
+                                    <div>${video.channelName || 'Unknown Channel'}</div>
+                                    <div>${video.views} views • ${timeAgo}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } else {
+            videosHtml = '<div class="loading" style="grid-column: 1 / -1;">This playlist has no videos.</div>';
+        }
+
+        grid.innerHTML = `
+            <div class="playlist-detail-header" style="margin-bottom: 24px; padding: 20px; background-color: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); position: relative; text-align: left;">
+                <button class="btn" onclick="goHome(event)" style="background-color: #272727; color: white; border: none; padding: 8px 16px; border-radius: 18px; font-weight: 500; cursor: pointer; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 6px;">← Back to Home</button>
+                <h2 style="font-size: 24px; font-weight: 700; margin-bottom: 8px; color: white;">📁 ${playlist.name}</h2>
+                <p style="font-size: 14px; color: var(--text-secondary); margin: 0; max-width: 800px; line-height: 1.5;">${playlist.description || 'No description available.'}</p>
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 10px; font-weight: 500;">
+                    ${playlist.videoIds.length} video${playlist.videoIds.length === 1 ? '' : 's'} • ${playlist.isPublic ? 'Public' : 'Private'}
+                </div>
+            </div>
+            <div class="video-grid-inner" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                ${videosHtml}
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error rendering custom playlist view:', error);
+        grid.innerHTML = `<div class="loading" style="color: #f44336;">Error loading playlist videos.</div>`;
+    }
+}
+
+function goHome(event) {
+    if (event) event.preventDefault();
+
+    // Update active sidebar selection
+    const homeBtn = document.getElementById('sidebar-home');
+    if (homeBtn) homeBtn.classList.add('active');
+
+    const sidebarLinks = document.querySelectorAll('.sidebar-playlist-link');
+    sidebarLinks.forEach(link => link.classList.remove('active'));
+
+    const grid = document.getElementById('video-grid');
+    if (grid) {
+        grid.style.display = 'grid';
+        grid.innerHTML = '<div class="loading">Loading videos...</div>';
+        fetchVideos();
+    }
+}
+
+window.fetchSidebarPlaylists = fetchSidebarPlaylists;
+window.showCustomPlaylistInHome = showCustomPlaylistInHome;
+window.goHome = goHome;
+
+// --- Create Channel Operations ---
+
+function openCreateChannelModal() {
+    let modal = document.getElementById('global-playlist-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'global-playlist-modal';
+        modal.className = 'modal-overlay';
+        document.body.appendChild(modal);
+    }
+
+    modal.style.display = 'flex';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3 class="modal-title">Create Channel</h3>
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px; text-align: left;">
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 12px; color: var(--text-secondary);">Channel Name</label>
+                    <input type="text" id="new-channel-name" placeholder="Channel Name" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: #181818; color: white; outline: none;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <label style="font-size: 12px; color: var(--text-secondary);">Channel Description</label>
+                    <textarea id="new-channel-desc" placeholder="Describe your channel" style="padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border); background: #181818; color: white; resize: none; height: 60px; outline: none; font-family: inherit; font-size: 13px;"></textarea>
+                </div>
+            </div>
+            <div style="margin-top: 25px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-cancel" onclick="closePlaylistModal()" style="background: none; border: none; color: white; cursor: pointer; padding: 8px 16px;">Cancel</button>
+                <button class="btn btn-primary-blue" onclick="submitCreateChannel()" style="border: none; padding: 8px 16px; border-radius: 20px; font-weight: 500; cursor: pointer;">Create</button>
+            </div>
+        </div>
+    `;
+}
+
+async function submitCreateChannel() {
+    const nameInput = document.getElementById('new-channel-name');
+    const descInput = document.getElementById('new-channel-desc');
+
+    if (!nameInput) return;
+    const name = nameInput.value.trim();
+    if (!name) {
+        alert('Channel name is required.');
+        return;
+    }
+
+    const description = descInput ? descInput.value.trim() : '';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/channel?userId=${TEST_USER_ID}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-User-Id': TEST_USER_ID
+            },
+            body: JSON.stringify({
+                name: name,
+                description: description
+            })
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.message || 'Failed to create channel');
+        }
+
+        const resObj = await response.json();
+        const createdChannelId = resObj.data;
+
+        alert('Channel created successfully!');
+        closePlaylistModal();
+        
+        // Redirect to the newly created channel
+        window.location.href = `channel.html?id=${createdChannelId}`;
+    } catch (error) {
+        console.error('Error creating channel:', error);
+        alert(error.message);
+    }
+}
+
+window.openCreateChannelModal = openCreateChannelModal;
+window.submitCreateChannel = submitCreateChannel;

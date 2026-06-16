@@ -31,6 +31,11 @@ namespace YouTubeClone.Domain.Aggregates.Channels
             Profile = profile;
         }
 
+        public void UpdateProfile(ChannelProfile profile)
+        {
+            Profile = profile;
+        }
+
         public void AddPost(Post post)
         {
             _posts.Add(post);

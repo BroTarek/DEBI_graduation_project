@@ -2480,7 +2480,8 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v8.0",
         "dependencies": {
-          "AutoMapper": "13.0.1"
+          "AutoMapper": "13.0.1",
+          "Microsoft.EntityFrameworkCore": "8.0.4"
         },
         "compile": {
           "bin/placeholder/Core.dll": {}

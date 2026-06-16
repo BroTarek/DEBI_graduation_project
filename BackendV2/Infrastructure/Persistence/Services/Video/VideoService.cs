@@ -52,8 +52,23 @@ namespace YouTubeClone.Domain.Services
 
         public async Task<VideoWatchDto> GetWatchPageVideoAsync(Guid videoId)
         {
+            var repo = _unitOfWork.GetRepo<Video, YouTubeClone.Domain.ValueObjects.VideoId>();
+            var video = await repo.GetByIdAsync(new YouTubeClone.Domain.ValueObjects.VideoId(videoId));
+            if (video == null) return null;
+
             return new VideoWatchDto {
-                Title = "", Description = "", VideoUrl = "", ChannelName = "", ChannelAvatarUrl = ""
+                Id = video.Id.Value,
+                Title = video.Descriptive.Title,
+                Description = video.Descriptive.Description,
+                VideoUrl = video.Basics.VideoUrl,
+                ChannelName = video.ChannelId,
+                ChannelAvatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(video.ChannelId)}&background=random",
+                Views = video.Stats.WatchCount,
+                Likes = video.Stats.LikesCount,
+                Dislikes = video.Stats.DislikesCount,
+                UploadDate = video.TemporalMetadata.UploadDate,
+                ThumbnailUrl = video.Basics.ThumbnailUrl,
+                Duration = video.TechnicalDetails.Duration
             };
         }
 

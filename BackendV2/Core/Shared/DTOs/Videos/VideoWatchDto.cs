@@ -12,4 +12,6 @@ public class VideoWatchDto
     public int Likes { get; set; }
     public int Dislikes { get; set; }
     public DateTime UploadDate { get; set; }
+    public string ThumbnailUrl { get; set; } = string.Empty;
+    public int Duration { get; set; }
 }
